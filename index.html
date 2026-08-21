@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Forge - Learn, Code, Build & Create</title>
+    <meta name="description" content="Code Forge is a premium coding platform to learn programming, practice coding, build projects, and use AI assistance.">
+    
+    <!-- Inline critical styles to prevent FOUC -->
+    <style>
+        /* Prevent flash of wrong theme */
+        html { visibility: visible; }
+        body { margin: 0; }
+        .theme-dark { background: #0a0a0f; color: #fff; }
+        .theme-light { background: #f8fafc; color: #0f172a; }
+        
+        /* Initial hide for unstyled content */
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* Loading state */
+        main { min-height: 100vh; }
+    </style>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="theme-dark">
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Navigation -->
+    <header id="main-header" class="main-header">
+        <nav class="nav-container">
+            <div class="nav-left">
+<a href="#" class="logo-link" data-page="home">
+                <img src="assets/logo.png" alt="Code Forge Logo" class="logo-img" id="cf-logo"
+                     onerror="this.onerror=null; this.src='assets/logo.svg';">
+            </a>
+            </div>
+            
+            <div class="nav-center" id="nav-links">
+                <a href="#" data-page="home" class="nav-link active">Home</a>
+                <a href="#" data-page="learn" class="nav-link">Learn</a>
+                <a href="#" data-page="languages" class="nav-link">Languages</a>
+                <a href="#" data-page="playground" class="nav-link">Playground</a>
+                <a href="#" data-page="projects" class="nav-link">Projects</a>
+                <a href="#" data-page="ai-assistant" class="nav-link nav-highlight">
+                    <i class="fas fa-robot"></i> AI Assistant
+                </a>
+            </div>
+            
+            <div class="nav-right">
+                <button class="btn btn-vip-nav" data-page="vip">
+                    <i class="fas fa-crown"></i> VIP
+                </button>
+                
+                <div class="theme-switcher" id="theme-switcher">
+                    <button class="theme-btn" id="theme-toggle-btn" aria-label="Toggle theme">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <div class="theme-dropdown" id="theme-dropdown">
+                        <button class="theme-option" data-theme="dark"><i class="fas fa-moon"></i> Dark Mode</button>
+                        <button class="theme-option" data-theme="light"><i class="fas fa-sun"></i> Light Mode</button>
+                        <button class="theme-option" data-theme="system"><i class="fas fa-desktop"></i> System</button>
+                    </div>
+                </div>
+                
+                <div class="account-dropdown" id="account-dropdown">
+                    <button class="btn-account" id="account-btn">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="account-name">Guest</span>
+                        <i class="fas fa-chevron-down account-arrow"></i>
+                    </button>
+                    <div class="dropdown-menu" id="account-menu">
+                        <div class="dropdown-header" id="dropdown-user-info">
+                            <div class="user-avatar-small">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="user-name-text" id="dropdown-username">Guest User</div>
+                                <div class="user-status-text" id="dropdown-status">Not logged in</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" data-page="dashboard" class="dropdown-item" id="menu-dashboard" style="display: none;">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a href="#" data-page="account" class="dropdown-item" id="menu-account">
+                            <i class="fas fa-cog"></i> Account Settings
+                        </a>
+                        <a href="#" data-page="vip" class="dropdown-item">
+                            <i class="fas fa-crown"></i> VIP Plans
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item dropdown-login" id="login-menu-btn">
+                            <i class="fas fa-sign-in-alt"></i> Login / Sign Up
+                        </button>
+                        <button class="dropdown-item dropdown-logout" id="logout-menu-btn" style="display: none;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobile-nav">
+            <a href="#" data-page="home" class="mobile-nav-link active">Home</a>
+            <a href="#" data-page="learn" class="mobile-nav-link">Learn</a>
+            <a href="#" data-page="languages" class="mobile-nav-link">Languages</a>
+            <a href="#" data-page="playground" class="mobile-nav-link">Playground</a>
+            <a href="#" data-page="projects" class="mobile-nav-link">Projects</a>
+            <a href="#" data-page="ai-assistant" class="mobile-nav-link mobile-nav-highlight">
+                <i class="fas fa-robot"></i> AI Assistant
+            </a>
+            <a href="#" data-page="vip" class="mobile-nav-link mobile-nav-vip">
+                <i class="fas fa-crown"></i> VIP Plans
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+        
+        <!-- HOME PAGE -->
+        <section id="page-home" class="page active">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-bg-effects">
+                    <div class="hero-grid"></div>
+                    <div class="hero-glow hero-glow-1"></div>
+                    <div class="hero-glow hero-glow-2"></div>
+                </div>
+                <div class="container hero-container">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-code"></i> The Future of Coding Education
+                        </div>
+                        <h1 class="hero-title">
+                            Learn. Code. Build.<br>
+                            <span class="gradient-text">Create with AI.</span>
+                        </h1>
+                        <p class="hero-subtitle">
+                            Master programming languages, practice in our interactive playground, 
+                            build real-world projects, and get instant help from powerful AI assistants.
+                        </p>
+                        <div class="hero-actions">
+                            <button class="btn btn-primary btn-lg" data-page="learn">
+                                <i class="fas fa-play-circle"></i> Start Learning
+                            </button>
+                            <button class="btn btn-secondary btn-lg" data-page="playground">
+                                <i class="fas fa-terminal"></i> Open Playground
+                            </button>
+                            <button class="btn btn-accent btn-lg" data-page="ai-assistant">
+                                <i class="fas fa-robot"></i> Try AI Assistant
+                            </button>
+                        </div>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">15+</span>
+                                <span class="stat-label">Languages</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">50+</span>
+                                <span class="stat-label">Projects</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">3</span>
+                                <span class="stat-label">AI Assistants</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="code-window">
+                            <div class="window-header">
+                                <div class="window-dots">
+                                    <span class="dot dot-red"></span>
+                                    <span class="dot dot-yellow"></span>
+                                    <span class="dot dot-green"></span>
+                                </div>
+                                <span class="window-title">main.js</span>
+                            </div>
+                            <div class="window-body">
+                                <pre><code><span class="kw">const</span> <span class="fn">developer</span> = {
+  <span class="prop">name</span>: <span class="str">"You"</span>,
+  <span class="prop">skills</span>: [],
+  <span class="prop">learning</span>: <span class="bool">true</span>,
+  
+  <span class="fn">learn</span>(<span class="prop">tech</span>) {
+    <span class="kw">this</span>.skills.<span class="fn">push</span>(tech);
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`Mastered ${tech}!`</span>);
+  },
+  
+  <span class="fn">build</span>(<span class="prop">project</span>) {
+    <span class="kw">return new</span> <span class="cls">Promise</span>((resolve) => {
+      <span class="fn">setTimeout</span>(() => 
+        resolve(<span class="str">`Built ${project}!`</span>)
+      , <span class="num">1000</span>);
+    });
+  }
+};
+
+<span class="comment">// Your coding journey starts here!</span>
+developer.<span class="fn">learn</span>(<span class="str">"JavaScript"</span>);
+developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div class="container section features-section">
+                <div class="section-header center">
+                    <h2 class="section-title">Everything You Need to Become a Developer</h2>
+                    <p class="section-subtitle">A complete ecosystem for learning, practicing, building, and accelerating your coding journey with AI.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon feature-icon-blue">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="feature-title">Structured Learning Paths</h3>
+                        <p class="feature-desc">Follow carefully crafted lessons from beginner to advanced levels across 15+ programming technologies.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Beginner to Advanced paths</li>
+                            <li><i class="fas fa-check"></i> Interactive exercises</li>
+                            <li><i class="fas fa-check"></i> Track your progress</li>
+                        </ul>
+                        <button class="btn btn-outline" data-page="learn">Explore Learning <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                    
+                    <div class="feature-card featured-card">
+                        <div class="featured-badge"><i class="fas fa-star"></i> Popular</div>
+                        <div class="feature-icon feature-icon-purple">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3 class="feature-title">Interactive Playground</h3>
+                        <p class="feature-desc">Write, run, and test code instantly in your browser. No setup required. Support for multiple languages.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Live HTML/CSS/JS preview</li>
+                            <li><i class="fas fa-check"></i> Multiple language support</li>
+                            <li><i class="fas fa-check"></i> Instant output & errors</li>
+                        </ul>
+                        <button class="btn btn-primary" data-page="playground">Open Playground <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon feature-icon-green">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="feature-title">Real-World Projects</h3>
+                        <p class="feature-desc">Build portfolio-ready projects with step-by-step guidance. From simple apps to complex applications.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> 50+ guided projects</li>
+                            <li><i class="fas fa-check"></i> All difficulty levels</li>
+                            <li><i class="fas fa-check"></i> Portfolio ready</li>
+                        </ul>
+                        <button class="btn btn-outline" data-page="projects">View Projects <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                    
+                    <div class="feature-card ai-card">
+                        <div class="featured-badge ai-badge"><i class="fas fa-bolt"></i> AI Powered</div>
+                        <div class="feature-icon feature-icon-orange">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="feature-title">AI Code Assistant</h3>
+                        <p class="feature-desc">Get help from ChatGPT, Gemini, or Claude. Debug code, generate snippets, learn concepts, and more.</p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> 3 AI providers</li>
+                            <li><i class="fas fa-check"></i> Code explanation & debugging</li>
+                            <li><i class="fas fa-check"></i> Project generation</li>
+                        </ul>
+                        <button class="btn btn-accent" data-page="ai-assistant">Try AI Assistant <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Technologies Section -->
+            <div class="container section tech-section">
+                <div class="section-header center">
+                    <h2 class="section-title">Technologies You Can Master</h2>
+                    <p class="section-subtitle">From web development to data science, we cover the most in-demand programming skills.</p>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-card" data-tech="html">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #e34c26, #f06529);">
+                            <i class="fab fa-html5"></i>
+                        </div>
+                        <span class="tech-name">HTML</span>
+                        <span class="tech-category">Web Basics</span>
+                    </div>
+                    <div class="tech-card" data-tech="css">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #264de4, #2965f1);">
+                            <i class="fab fa-css3-alt"></i>
+                        </div>
+                        <span class="tech-name">CSS</span>
+                        <span class="tech-category">Styling</span>
+                    </div>
+                    <div class="tech-card" data-tech="javascript">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #f7df1e, #f0db4f); color: #000;">
+                            <i class="fab fa-js-square"></i>
+                        </div>
+                        <span class="tech-name">JavaScript</span>
+                        <span class="tech-category">Programming</span>
+                    </div>
+                    <div class="tech-card" data-tech="python">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #3776ab, #ffd43b);">
+                            <i class="fab fa-python"></i>
+                        </div>
+                        <span class="tech-name">Python</span>
+                        <span class="tech-category">General Purpose</span>
+                    </div>
+                    <div class="tech-card" data-tech="java">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #007396, #ed8b00);">
+                            <i class="fab fa-java"></i>
+                        </div>
+                        <span class="tech-name">Java</span>
+                        <span class="tech-category">Enterprise</span>
+                    </div>
+                    <div class="tech-card" data-tech="c-plus-plus">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #00599C, #004482);">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span class="tech-name">C++</span>
+                        <span class="tech-category">Systems</span>
+                    </div>
+                    <div class="tech-card" data-tech="sql">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #336791, #00758F);">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <span class="tech-name">SQL</span>
+                        <span class="tech-category">Database</span>
+                    </div>
+                    <div class="tech-card" data-tech="react">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #61dafb, #282c34);">
+                            <i class="fab fa-react"></i>
+                        </div>
+                        <span class="tech-name">React</span>
+                        <span class="tech-category">Frontend</span>
+                    </div>
+                    <div class="tech-card" data-tech="nodejs">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #339933, #68a063);">
+                            <i class="fab fa-node-js"></i>
+                        </div>
+                        <span class="tech-name">Node.js</span>
+                        <span class="tech-category">Backend</span>
+                    </div>
+                    <div class="tech-card" data-tech="php">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #777bb4, #8993be);">
+                            <i class="fab fa-php"></i>
+                        </div>
+                        <span class="tech-name">PHP</span>
+                        <span class="tech-category">Backend</span>
+                    </div>
+                    <div class="tech-card" data-tech="csharp">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #68217a, #9b4f96);">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span class="tech-name">C#</span>
+                        <span class="tech-category">Enterprise</span>
+                    </div>
+                    <div class="tech-card" data-tech="typescript">
+                        <div class="tech-icon" style="background: linear-gradient(135deg, #3178c6, #235a97);">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span class="tech-name">TypeScript</span>
+                        <span class="tech-category">Programming</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- How It Works Section -->
+            <div class="container section how-it-works-section">
+                <div class="section-header center">
+                    <h2 class="section-title">How Code Forge Works</h2>
+                    <p class="section-subtitle">Start your coding journey in four simple steps.</p>
+                </div>
+                <div class="steps-container">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                        <h3>Create Account</h3>
+                        <p>Sign up for free or continue as a guest. No credit card required to start learning.</p>
+                    </div>
+                    <div class="step-connector"><i class="fas fa-chevron-right"></i></div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon"><i class="fas fa-book-open"></i></div>
+                        <h3>Choose a Path</h3>
+                        <p>Select a technology you want to master. Follow structured lessons at your own pace.</p>
+                    </div>
+                    <div class="step-connector"><i class="fas fa-chevron-right"></i></div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon"><i class="fas fa-code"></i></div>
+                        <h3>Practice & Build</h3>
+                        <p>Use the playground to experiment and work on real-world projects to solidify skills.</p>
+                    </div>
+                    <div class="step-connector"><i class="fas fa-chevron-right"></i></div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <div class="step-icon"><i class="fas fa-robot"></i></div>
+                        <h3>Get AI Help</h3>
+                        <p>Stuck? Ask our AI assistants for explanations, code generation, or debugging help.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Project Showcase Section -->
+            <div class="container section showcase-section">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Featured Projects</h2>
+                        <p class="section-subtitle">Build these projects to strengthen your portfolio.</p>
+                    </div>
+                    <button class="btn btn-outline" data-page="projects">View All Projects <i class="fas fa-arrow-right"></i></button>
+                </div>
+                <div class="showcase-grid">
+                    <div class="project-showcase-card">
+                        <div class="project-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="project-info">
+                            <div class="project-tags">
+                                <span class="tag tag-beginner">Beginner</span>
+                                <span class="tag">HTML</span>
+                                <span class="tag">CSS</span>
+                            </div>
+                            <h4>Portfolio Website</h4>
+                            <p>A responsive personal portfolio website showcasing your skills and projects.</p>
+                            <button class="btn btn-sm btn-primary" data-project="portfolio">Start Project</button>
+                        </div>
+                    </div>
+                    <div class="project-showcase-card">
+                        <div class="project-preview" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="project-info">
+                            <div class="project-tags">
+                                <span class="tag tag-beginner">Beginner</span>
+                                <span class="tag">JavaScript</span>
+                            </div>
+                            <h4>Calculator App</h4>
+                            <p>A fully functional calculator with beautiful UI and keyboard support.</p>
+                            <button class="btn btn-sm btn-primary" data-project="calculator">Start Project</button>
+                        </div>
+                    </div>
+                    <div class="project-showcase-card">
+                        <div class="project-preview" style="background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="project-info">
+                            <div class="project-tags">
+                                <span class="tag tag-intermediate">Intermediate</span>
+                                <span class="tag">JavaScript</span>
+                                <span class="tag">LocalStorage</span>
+                            </div>
+                            <h4>To-Do Application</h4>
+                            <p>A complete task manager with categories, priorities, and local storage persistence.</p>
+                            <button class="btn btn-sm btn-primary" data-project="todo">Start Project</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Promo Section -->
+            <div class="ai-promo-section">
+                <div class="container">
+                    <div class="ai-promo-content">
+                        <div class="ai-promo-text">
+                            <div class="promo-badge"><i class="fas fa-wand-magic-sparkles"></i> Powered by Multiple AI Models</div>
+                            <h2>Your Intelligent Coding Companion</h2>
+                            <p>Get instant help from three powerful AI assistants:</p>
+                            <ul class="ai-providers-list">
+                                <li>
+                                    <div class="provider-icon provider-openai"><i class="fas fa-comment-dots"></i></div>
+                                    <div>
+                                        <strong>ChatGPT</strong>
+                                        <span>Great for general coding questions and explanations</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="provider-icon provider-google"><i class="fas fa-brain"></i></div>
+                                    <div>
+                                        <strong>Gemini</strong>
+                                        <span>Requires Google sign-in • Advanced reasoning</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="provider-icon provider-anthropic"><i class="fas fa-shield-halved"></i></div>
+                                    <div>
+                                        <strong>Claude</strong>
+                                        <span>VIP Exclusive • Best for complex projects</span>
+                                    </div>
+                                </li>
+                            </ul>
+                            <button class="btn btn-accent btn-lg" data-page="ai-assistant">
+                                <i class="fas fa-robot"></i> Launch AI Assistant
+                            </button>
+                        </div>
+                        <div class="ai-promo-visual">
+                            <div class="chat-demo">
+                                <div class="demo-message demo-user">
+                                    <span>Help me build a portfolio website</span>
+                                </div>
+                                <div class="demo-message demo-ai">
+                                    <span>I'd be happy to help you create a portfolio website! Here's a modern approach...</span>
+                                    <div class="demo-code-block">
+                                        <code>&lt;section class="hero"&gt;<br>&nbsp;&lt;h1&gt;Hello World&lt;/h1&gt;<br>&lt;/section&gt;</code>
+                                    </div>
+                                </div>
+                                <div class="demo-typing">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIP Promo Section -->
+            <div class="vip-promo-section">
+                <div class="container">
+                    <div class="vip-promo-content">
+                        <div class="vip-badge-container">
+                            <div class="vip-badge-large">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                        </div>
+                        <div class="vip-details">
+                            <h2>Upgrade to VIP</h2>
+                            <p class="vip-price">Only <span class="price-value">₹100</span><span class="price-period">/month</span></p>
+                            <ul class="vip-benefits">
+                                <li><i class="fas fa-check-circle"></i> Full access to Claude AI assistant</li>
+                                <li><i class="fas fa-check-circle"></i> Premium project templates</li>
+                                <li><i class="fas fa-check-circle"></i> Priority learning paths</li>
+                                <li><i class="fas fa-check-circle"></i> Advanced playground features</li>
+                                <li><i class="fas fa-check-circle"></i> Ad-free experience</li>
+                            </ul>
+                            <button class="btn btn-vip btn-lg" data-page="vip">
+                                <i class="fas fa-crown"></i> View VIP Plans
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LEARN PAGE -->
+        <section id="page-learn" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Learn Programming</h1>
+                        <p class="page-description">Choose a technology and start your structured learning journey.</p>
+                    </div>
+                </div>
+                
+                <div class="learn-categories">
+                    <button class="category-chip active" data-category="all">All Technologies</button>
+                    <button class="category-chip" data-category="web">Web Development</button>
+                    <button class="category-chip" data-category="programming">Programming</button>
+                    <button class="category-chip" data-category="backend">Backend</button>
+                    <button class="category-chip" data-category="database">Database</button>
+                    <button class="category-chip" data-category="beginner">Beginner Friendly</button>
+                </div>
+                
+                <div class="learn-grid" id="learn-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- LEARNING DETAIL PAGE -->
+        <section id="page-learning-detail" class="page">
+            <div class="learning-layout">
+                <aside class="learning-sidebar" id="learning-sidebar">
+                    <div class="sidebar-header">
+                        <button class="back-to-learn" data-page="learn">
+                            <i class="fas fa-arrow-left"></i> Back to Learn
+                        </button>
+                        <h3 id="current-course-title">Course Title</h3>
+                    </div>
+                    <div class="course-progress">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="course-progress-bar" style="width: 0%;"></div>
+                        </div>
+                        <span class="progress-text" id="progress-text">0% Complete</span>
+                    </div>
+                    <nav class="lesson-nav" id="lesson-nav">
+                        <!-- Lessons populated by JavaScript -->
+                    </nav>
+                </aside>
+                <div class="learning-main">
+                    <div class="lesson-content" id="lesson-content">
+                        <!-- Lesson content populated by JavaScript -->
+                    </div>
+                    <div class="lesson-navigation">
+                        <button class="btn btn-outline" id="prev-lesson-btn" disabled>
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button class="btn btn-primary" id="next-lesson-btn">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LANGUAGES PAGE -->
+        <section id="page-languages" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Programming Languages</h1>
+                        <p class="page-description">Explore and master popular programming technologies.</p>
+                    </div>
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" placeholder="Search languages..." id="language-search" class="search-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="category-filter" class="filter-select">
+                            <option value="all">All Categories</option>
+                            <option value="frontend">Frontend</option>
+                            <option value="backend">Backend</option>
+                            <option value="programming">Programming</option>
+                            <option value="database">Database</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Difficulty:</label>
+                        <select id="difficulty-filter" class="filter-select">
+                            <option value="all">All Levels</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="languages-grid" id="languages-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PLAYGROUND PAGE -->
+        <section id="page-playground" class="page">
+            <div class="playground-wrapper">
+                <div class="playground-toolbar">
+                    <div class="toolbar-left">
+                        <div class="language-selector">
+                            <label>Language:</label>
+                            <select id="playground-language" class="lang-select">
+                                <option value="html-css-js">HTML/CSS/JS (Live Preview)</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python (Config Required)</option>
+                                <option value="java">Java (Config Required)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="toolbar-center">
+                        <button class="btn btn-primary btn-run" id="run-btn">
+                            <i class="fas fa-play"></i> Run Code
+                        </button>
+                        <button class="btn btn-secondary" id="reset-btn">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="status-indicator">
+                            <span class="status-dot status-ready" id="status-dot"></span>
+                            <span id="status-text">Ready</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="playground-main">
+                    <div class="editor-panel">
+                        <div class="panel-tabs">
+                            <button class="panel-tab active" data-tab="editor-tab">
+                                <i class="fas fa-code"></i> Editor
+                            </button>
+                        </div>
+                        <div class="editor-container">
+                            <textarea id="code-editor" spellcheck="false" placeholder="Write your code here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="resizer" id="resizer"></div>
+                    <div class="output-panel">
+                        <div class="panel-tabs">
+                            <button class="panel-tab active" data-tab="output-tab">
+                                <i class="fas fa-terminal"></i> Output
+                            </button>
+                            <button class="panel-tab" data-tab="preview-tab" id="preview-tab-btn">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                        <div class="output-container" id="output-container">
+                            <pre id="output-area">// Output will appear here after running code</pre>
+                        </div>
+                        <div class="preview-container hidden" id="preview-container">
+                            <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECTS PAGE -->
+        <section id="page-projects" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Project Library</h1>
+                        <p class="page-description">Build real-world projects to strengthen your skills and portfolio.</p>
+                    </div>
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" placeholder="Search projects..." id="project-search" class="search-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="project-category-filter" class="filter-select">
+                            <option value="all">All Categories</option>
+                            <option value="web">Web Development</option>
+                            <option value="app">Applications</option>
+                            <option value="utility">Utilities</option>
+                            <option value="game">Games</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Difficulty:</label>
+                        <select id="project-difficulty-filter" class="filter-select">
+                            <option value="all">All Levels</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="projects-grid" id="projects-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECT WORKSPACE PAGE -->
+        <section id="page-project-workspace" class="page">
+            <div class="workspace-wrapper">
+                <div class="workspace-toolbar">
+                    <div class="workspace-title">
+                        <button class="back-btn" data-page="projects">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h2 id="workspace-project-title">Project Name</h2>
+                    </div>
+                    <div class="workspace-actions">
+                        <button class="btn btn-secondary" id="workspace-reset-btn">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button class="btn btn-primary" id="workspace-save-btn">
+                            <i class="fas fa-save"></i> Save Project
+                        </button>
+                    </div>
+                </div>
+                <div class="workspace-content">
+                    <div class="workspace-sidebar">
+                        <h4>Project Files</h4>
+                        <ul class="file-tree" id="file-tree">
+                            <!-- Populated by JavaScript -->
+                        </ul>
+                    </div>
+                    <div class="workspace-editor">
+                        <div class="workspace-tabs" id="workspace-tabs">
+                            <!-- Tabs populated by JavaScript -->
+                        </div>
+                        <textarea id="workspace-editor" spellcheck="false"></textarea>
+                    </div>
+                    <div class="workspace-output">
+                        <div class="workspace-tabs workspace-output-tabs">
+                            <button class="panel-tab active">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                        <iframe id="workspace-preview" sandbox="allow-scripts allow-same-origin"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI ASSISTANT PAGE -->
+        <section id="page-ai-assistant" class="page">
+            <div class="ai-wrapper">
+                <div class="ai-sidebar" id="ai-sidebar">
+                    <div class="ai-sidebar-header">
+                        <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+                    </div>
+                    <div class="provider-select">
+                        <label>AI Provider:</label>
+                        <div class="provider-options">
+                            <button class="provider-btn active" data-provider="chatgpt" id="provider-chatgpt">
+                                <i class="fas fa-comment-dots"></i>
+                                <span>ChatGPT</span>
+                                <span class="provider-status available">Available</span>
+                            </button>
+                            <button class="provider-btn" data-provider="gemini" id="provider-gemini">
+                                <i class="fas fa-brain"></i>
+                                <span>Gemini</span>
+                                <span class="provider-status needs-auth" title="Requires Google Sign In">Auth Required</span>
+                            </button>
+                            <button class="provider-btn vip-provider" data-provider="claude" id="provider-claude">
+                                <i class="fas fa-shield-halved"></i>
+                                <span>Claude</span>
+                                <span class="provider-status vip-only">VIP Only</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <h4>Quick Actions</h4>
+                        <div class="quick-action-grid">
+                            <button class="quick-action-btn" data-prompt="Explain this code to me">
+                                <i class="fas fa-lightbulb"></i> Explain Code
+                            </button>
+                            <button class="quick-action-btn" data-prompt="Find and fix bugs in my code">
+                                <i class="fas fa-bug"></i> Debug Code
+                            </button>
+                            <button class="quick-action-btn" data-prompt="Help me write cleaner code">
+                                <i class="fas fa-wand-magic-sparkles"></i> Improve Code
+                            </button>
+                            <button class="quick-action-btn" data-prompt="Give me a project idea">
+                                <i class="fas fa-lightbulb"></i> Project Idea
+                            </button>
+                            <button class="quick-action-btn" data-prompt="Convert this code to another language">
+                                <i class="fas fa-exchange-alt"></i> Convert Language
+                            </button>
+                            <button class="quick-action-btn" data-prompt="Write unit tests for this code">
+                                <i class="fas fa-vial"></i> Write Tests
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ai-info">
+                        <div class="info-card">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>About AI Providers</strong>
+                                <p><strong>ChatGPT</strong> is available for everyone. <strong>Gemini</strong> requires Google sign-in. <strong>Claude</strong> requires active VIP subscription (₹100/month).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-main">
+                    <div class="chat-header">
+                        <div class="chat-provider-display" id="chat-provider-display">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>ChatGPT</span>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="icon-btn" id="clear-chat-btn" title="Clear Conversation">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="welcome-message">
+                            <div class="welcome-icon"><i class="fas fa-robot"></i></div>
+                            <h3>Welcome to Code Forge AI</h3>
+                            <p>I'm here to help you with coding tasks. Ask me anything about:</p>
+                            <ul>
+                                <li>Writing or explaining code</li>
+                                <li>Debugging and fixing errors</li>
+                                <li>Building projects step by step</li>
+                                <li>Learning programming concepts</li>
+                                <li>Best practices and patterns</li>
+                            </ul>
+                            <p>Try one of the quick actions or type your question below!</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-wrapper">
+                            <textarea id="chat-input" placeholder="Ask about code, get help debugging, or describe what you want to build..." rows="1"></textarea>
+                            <button class="send-btn" id="send-btn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="input-hints">
+                            <span><kbd>Enter</kbd> to send</span>
+                            <span><kbd>Shift + Enter</kbd> for new line</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD PAGE -->
+        <section id="page-dashboard" class="page">
+            <div class="container">
+                <div class="dashboard-welcome">
+                    <div class="welcome-text">
+                        <h1>Welcome back, <span id="dash-username">User</span>! 👋</h1>
+                        <p>Continue your coding journey where you left off.</p>
+                    </div>
+                    <div class="user-plan-badge" id="dash-plan-badge">
+                        <i class="fas fa-user"></i> Free Plan
+                    </div>
+                </div>
+                
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon stat-blue"><i class="fas fa-book-reader"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-lessons">0</span>
+                            <span class="stat-label">Lessons Completed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-green"><i class="fas fa-project-diagram"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-projects">0</span>
+                            <span class="stat-label">Projects Started</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-purple"><i class="fas fa-robot"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-ai-chats">0</span>
+                            <span class="stat-label">AI Conversations</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-orange"><i class="fas fa-fire"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-streak">0</span>
+                            <span class="stat-label">Day Streak</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clock"></i> Continue Learning</h3>
+                        </div>
+                        <div class="card-body" id="continue-learning">
+                            <div class="empty-state">
+                                <i class="fas fa-book-open"></i>
+                                <p>No recent lessons</p>
+                                <button class="btn btn-primary" data-page="learn">Browse Courses</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-folder-open"></i> Recent Projects</h3>
+                        </div>
+                        <div class="card-body" id="recent-projects">
+                            <div class="empty-state">
+                                <i class="fas fa-code-branch"></i>
+                                <p>No projects yet</p>
+                                <button class="btn btn-primary" data-page="projects">Explore Projects</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card dashboard-full">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Learning Progress</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="progress-overview" id="progress-overview">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Start a course to see your progress</p>
+                                    <button class="btn btn-primary" data-page="learn">Start Learning</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIP PAGE -->
+        <section id="page-vip" class="page">
+            <div class="container">
+                <div class="vip-hero">
+                    <div class="vip-hero-content">
+                        <div class="crown-animation">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h1>Become a VIP Member</h1>
+                        <p>Unlock the full potential of Code Forge with premium features</p>
+                    </div>
+                </div>
+                
+                <div class="pricing-section">
+                    <div class="pricing-cards">
+                        <div class="pricing-card free-card">
+                            <div class="plan-header">
+                                <h3>Free Plan</h3>
+                                <div class="plan-price">
+                                    <span class="price">₹0</span>
+                                    <span class="period">/month</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li class="included"><i class="fas fa-check"></i> Access to all courses</li>
+                                <li class="included"><i class="fas fa-check"></i> Coding Playground</li>
+                                <li class="included"><i class="fas fa-check"></i> ChatGPT AI Assistant</li>
+                                <li class="included"><i class="fas fa-check"></i> Beginner projects</li>
+                                <li class="excluded"><i class="fas fa-times"></i> Claude AI Access</li>
+                                <li class="excluded"><i class="fas fa-times"></i> Gemini AI Access</li>
+                                <li class="excluded"><i class="fas fa-times"></i> Premium projects</li>
+                                <li class="excluded"><i class="fas fa-times"></i> Priority support</li>
+                            </ul>
+                            <button class="btn btn-outline btn-current" disabled>Current Plan</button>
+                        </div>
+                        
+                        <div class="pricing-card vip-card recommended">
+                            <div class="recommended-badge"><i class="fas fa-star"></i> Most Popular</div>
+                            <div class="plan-header">
+                                <h3>VIP Plan</h3>
+                                <div class="plan-price">
+                                    <span class="price">₹100</span>
+                                    <span class="period">/month</span>
+                                </div>
+                            </div>
+                            <ul class="plan-features">
+                                <li class="included"><i class="fas fa-check"></i> Everything in Free</li>
+                                <li class="included highlight"><i class="fas fa-check"></i> <strong>Claude AI Access</strong></li>
+                                <li class="included highlight"><i class="fas fa-check"></i> <strong>Gemini AI Access</strong></li>
+                                <li class="included"><i class="fas fa-check"></i> All 50+ projects</li>
+                                <li class="included"><i class="fas fa-check"></i> Premium templates</li>
+                                <li class="included"><i class="fas fa-check"></i> Advanced playground</li>
+                                <li class="included"><i class="fas fa-check"></i> Ad-free experience</li>
+                                <li class="included"><i class="fas fa-check"></i> Priority support</li>
+                            </ul>
+                            <button class="btn btn-vip btn-lg" id="subscribe-btn">
+                                <i class="fas fa-crown"></i> Subscribe Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vip-features-detail">
+                    <h2>VIP Features Explained</h2>
+                    <div class="features-detail-grid">
+                        <div class="detail-card">
+                            <div class="detail-icon"><i class="fas fa-shield-halved"></i></div>
+                            <h3>Claude AI Access</h3>
+                            <p>Get assistance from Anthropic's Claude - known for exceptional coding capabilities, nuanced understanding, and detailed technical explanations.</p>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon"><i class="fas fa-brain"></i></div>
+                            <h3>Gemini AI Access</h3>
+                            <p>Leverage Google's powerful Gemini model with its multimodal capabilities and deep integration with Google services.</p>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <h3>Premium Projects</h3>
+                            <p>Access exclusive project templates designed by industry professionals - perfect for building an impressive portfolio.</p>
+                        </div>
+                        <div class="detail-card">
+                            <div class="detail-icon"><i class="fas fa-bolt"></i></div>
+                            <h3>Priority Support</h3>
+                            <p>Get faster responses from our support team when you need help with any aspect of the platform.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="subscription-status" id="subscription-status">
+                    <h3>Subscription Status</h3>
+                    <div class="status-card">
+                        <div class="status-row">
+                            <span>Current Plan:</span>
+                            <strong id="current-plan-name">Free Plan</strong>
+                        </div>
+                        <div class="status-row">
+                            <span>Status:</span>
+                            <span class="status-badge" id="subscription-status-badge">Inactive</span>
+                        </div>
+                        <div class="status-row">
+                            <span>Renewal Date:</span>
+                            <span id="renewal-date">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LOGIN/SIGNUP PAGE -->
+        <section id="page-auth" class="page">
+            <div class="auth-wrapper">
+                <div class="auth-container">
+                    <div class="auth-branding">
+                        <img src="assets/logo.png" alt="Code Forge" class="auth-logo"
+                     onerror="this.onerror=null; this.src='assets/logo.svg';">
+                        <h2>Welcome to Code Forge</h2>
+                        <p>Your journey to becoming a developer starts here.</p>
+                    </div>
+                    
+                    <div class="auth-forms">
+                        <div class="form-tabs">
+                            <button class="form-tab active" data-form="login">Login</button>
+                            <button class="form-tab" data-form="signup">Sign Up</button>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form id="login-form" class="auth-form active">
+                            <div class="form-group">
+                                <label for="login-email">Email Address</label>
+                                <input type="email" id="login-email" placeholder="you@example.com" required>
+                                <span class="field-error" id="login-email-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <div class="password-input">
+                                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                                    <button type="button" class="toggle-password" data-target="login-password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <span class="field-error" id="login-password-error"></span>
+                            </div>
+                            <div class="form-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="remember-me">
+                                    <span>Remember me</span>
+                                </label>
+                                <a href="#" class="forgot-link">Forgot password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block btn-login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                            
+                            <div class="divider">
+                                <span>or continue with</span>
+                            </div>
+                            
+                            <button type="button" class="btn btn-google btn-block" id="google-signin-btn">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                Continue with Google
+                            </button>
+                            
+                            <div class="form-error" id="login-form-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span id="login-error-message"></span>
+                            </div>
+                        </form>
+                        
+                        <!-- Signup Form -->
+                        <form id="signup-form" class="auth-form">
+                            <div class="form-group">
+                                <label for="signup-name">Full Name</label>
+                                <input type="text" id="signup-name" placeholder="Your name" required>
+                                <span class="field-error" id="signup-name-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email Address</label>
+                                <input type="email" id="signup-email" placeholder="you@example.com" required>
+                                <span class="field-error" id="signup-email-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <div class="password-input">
+                                    <input type="password" id="signup-password" placeholder="Min 6 characters" required minlength="6">
+                                    <button type="button" class="toggle-password" data-target="signup-password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <span class="field-error" id="signup-password-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-confirm">Confirm Password</label>
+                                <div class="password-input">
+                                    <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
+                                    <button type="button" class="toggle-password" data-target="signup-confirm">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <span class="field-error" id="signup-confirm-error"></span>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block btn-signup">
+                                <i class="fas fa-user-plus"></i> Create Account
+                            </button>
+                            
+                            <div class="divider">
+                                <span>or sign up with</span>
+                            </div>
+                            
+                            <button type="button" class="btn btn-google btn-block" id="google-signup-btn">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                Sign up with Google
+                            </button>
+                            
+                            <div class="form-error" id="signup-form-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span id="signup-error-message"></span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACCOUNT PAGE -->
+        <section id="page-account" class="page">
+            <div class="container">
+                <div class="account-layout">
+                    <div class="account-sidebar">
+                        <div class="profile-card">
+                            <div class="profile-avatar" id="account-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <h3 id="account-display-name">Guest User</h3>
+                            <p id="account-display-email">Not logged in</p>
+                            <div class="account-status-badge" id="account-status-badge">
+                                Guest
+                            </div>
+                        </div>
+                        <nav class="account-nav">
+                            <a href="#" class="account-nav-link active" data-section="profile">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-nav-link" data-section="security">
+                                <i class="fas fa-lock"></i> Security
+                            </a>
+                            <a href="#" class="account-nav-link" data-section="subscription">
+                                <i class="fas fa-crown"></i> Subscription
+                            </a>
+                            <a href="#" class="account-nav-link" data-section="preferences">
+                                <i class="fas fa-sliders-h"></i> Preferences
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="account-main">
+                        <!-- Profile Section -->
+                        <div class="account-section active" id="section-profile">
+                            <h2>Profile Information</h2>
+                            <form id="profile-form" class="settings-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="profile-name">Full Name</label>
+                                        <input type="text" id="profile-name" placeholder="Your name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile-email">Email Address</label>
+                                        <input type="email" id="profile-email" placeholder="you@example.com" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-bio">Bio</label>
+                                    <textarea id="profile-bio" rows="3" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Security Section -->
+                        <div class="account-section" id="section-security">
+                            <h2>Security Settings</h2>
+                            <form id="security-form" class="settings-form">
+                                <div class="form-group">
+                                    <label for="change-password-current">Current Password</label>
+                                    <div class="password-input">
+                                        <input type="password" id="change-password-current" placeholder="Enter current password">
+                                        <button type="button" class="toggle-password" data-target="change-password-current">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="change-password-new">New Password</label>
+                                        <div class="password-input">
+                                            <input type="password" id="change-password-new" placeholder="Enter new password">
+                                            <button type="button" class="toggle-password" data-target="change-password-new">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="change-password-confirm">Confirm New Password</label>
+                                        <div class="password-input">
+                                            <input type="password" id="change-password-confirm" placeholder="Confirm new password">
+                                            <button type="button" class="toggle-password" data-target="change-password-confirm">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </form>
+                            
+                            <div class="danger-zone">
+                                <h3>Danger Zone</h3>
+                                <p>Once you delete your account, there is no going back. Please be certain.</p>
+                                <button class="btn btn-danger" id="delete-account-btn">Delete Account</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Subscription Section -->
+                        <div class="account-section" id="section-subscription">
+                            <h2>Subscription Management</h2>
+                            <div class="subscription-card">
+                                <div class="sub-info">
+                                    <div class="sub-plan">
+                                        <i class="fas fa-user-circle"></i>
+                                        <div>
+                                            <h4 id="sub-plan-name">Free Plan</h4>
+                                            <p id="sub-plan-desc">Basic access to Code Forge features</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sub-actions" id="sub-actions">
+                                    <button class="btn btn-vip" data-page="vip">Upgrade to VIP</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Preferences Section -->
+                        <div class="account-section" id="section-preferences">
+                            <h2>Preferences</h2>
+                            <div class="preferences-grid">
+                                <div class="pref-card">
+                                    <div class="pref-header">
+                                        <i class="fas fa-moon"></i>
+                                        <div>
+                                            <h4>Theme</h4>
+                                            <p id="pref-theme-label">Dark Mode</p>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" id="open-theme-modal">Change Theme</button>
+                                </div>
+                                <div class="pref-card">
+                                    <div class="pref-header">
+                                        <i class="fas fa-bell"></i>
+                                        <div>
+                                            <h4>Notifications</h4>
+                                            <p>Email notifications enabled</p>
+                                        </div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked id="notifications-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="assets/logo.png" alt="Code Forge" class="footer-logo"
+                     onerror="this.onerror=null; this.src='assets/logo.svg';">
+                    <p>The ultimate platform for learning programming, practicing code, building projects, and leveraging AI assistance.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#" data-page="home">Home</a></li>
+                        <li><a href="#" data-page="learn">Learn</a></li>
+                        <li><a href="#" data-page="languages">Languages</a></li>
+                        <li><a href="#" data-page="playground">Playground</a></li>
+                        <li><a href="#" data-page="projects">Projects</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="#" data-page="ai-assistant">AI Assistant</a></li>
+                        <li><a href="#" data-page="vip">VIP Plans</a></li>
+                        <li><a href="#">Code Editor</a></li>
+                        <li><a href="#">Community</a></li>
+                        <li><a href="#">Resources</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Account</h4>
+                    <ul>
+                        <li><a href="#" data-page="auth">Login</a></li>
+                        <li><a href="#" data-page="account">Account Settings</a></li>
+                        <li><a href="#" data-page="dashboard">Dashboard</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Code Forge. All rights reserved.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- VIP Upgrade Modal -->
+    <div class="modal-overlay" id="vip-modal" style="display: none;">
+        <div class="modal modal-vip">
+            <div class="modal-header">
+                <h3><i class="fas fa-crown"></i> Upgrade to VIP</h3>
+                <button class="modal-close" id="close-vip-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-feature">
+                    <i class="fas fa-shield-halved"></i>
+                    <div>
+                        <strong>Unlock Claude AI</strong>
+                        <p>Get unlimited access to Claude - the most capable coding AI assistant.</p>
+                    </div>
+                </div>
+                <div class="modal-price">
+                    <span class="price-big">₹100</span>/month
+                </div>
+                <p class="modal-note">Cancel anytime. Payment processed securely.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-upgrade">Maybe Later</button>
+                <button class="btn btn-vip" id="confirm-upgrade">
+                    <i class="fas fa-crown"></i> Upgrade Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Auth Modal -->
+    <div class="modal-overlay" id="google-auth-modal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fab fa-google"></i> Google Authentication Required</h3>
+                <button class="modal-close" id="close-google-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>To use <strong>Gemini</strong>, you need to authenticate with your Google account.</p>
+                <p>This enables secure access to Google's AI services through your authenticated session.</p>
+                <div class="auth-benefits">
+                    <h4>You'll get:</h4>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Access to Gemini AI</li>
+                        <li><i class="fas fa-check"></i> Faster response times</li>
+                        <li><i class="fas fa-check"></i> Personalized assistance</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancel-google-auth">Cancel</button>
+                <button class="btn btn-google" id="confirm-google-auth">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/learn.js"></script>
+    <script src="js/languages.js"></script>
+    <script src="js/playground.js"></script>
+    <script src="js/projects.js"></script>
+    <script src="js/ai-assistant.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
