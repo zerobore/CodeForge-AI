@@ -1,0 +1,32 @@
+CODE FORGE - VIP PROMO CODES
+================================
+
+These promo codes provide UNLIMITED uses for VIP access.
+VIP includes: Claude AI access + Ad-free experience
+
+--- STANDARD PROMO CODES (10) ---
+1. X7K9-P2L4-MN6R-Q8W2
+2. B5T8-V3C9-D7F1-K2P4
+3. Z4M6-N8B2-R5T7-Y3H9
+4. Q2W9-E4R6-T8Y1-U3I5
+5. L8K3-J6H2-M9N4-P5G7
+6. D4F7-G9H1-K2L8-M6N3
+7. R5T2-Y7U8-I4O9-P6A1
+8. M3N6-B8V2-C9X4-Z7L1
+9. H7J1-K4L9-M2N5-P8Q3
+10. S6D2-F8G3-H1J4-K5L7
+
+--- ADMIN PROMO CODE ---
+ADMIN: ZB-00-11-22-33
+(Unlocks ADMIN MODE with full access)
+
+--- INSTRUCTIONS ---
+- Users can enter any promo code on the VIP page
+- Each code has UNLIMITED uses
+- VIP status is saved in user account
+- Admin code enables special admin features
+
+--- SECURITY NOTE ---
+- These codes are hard-coded in the frontend for demo purposes
+- For production, use a backend service to validate codes
+- Generated on: 2026-08-21

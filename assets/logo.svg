@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background (optional, for preview) -->
+  <!-- <rect width="280" height="60" rx="12" fill="#0a0a0f"/> -->
+  
+  <!-- Icon/Logo Mark -->
+  <g transform="translate(5, 8)">
+    <rect x="2" y="2" width="44" height="44" rx="10" fill="url(#grad)"/>
+    
+    <!-- Code brackets -->
+    <text x="24" y="32" font-family="'Courier New', monospace" font-size="20" font-weight="bold" fill="white" text-anchor="middle">&lt;/&gt;</text>
+  </g>
+  
+  <!-- Text -->
+  <text x="62" y="28" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="800" fill="#ffffff">Code</text>
+  <text x="118" y="28" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="22" font-weight="300" fill="#8b8fa3">Forge</text>
+  
+  <!-- Tagline (smaller) -->
+  <text x="62" y="46" font-family="Inter, sans-serif" font-size="9" fill="#666882" letter-spacing="1.5">LEARN • CODE • BUILD</text>
+</svg>

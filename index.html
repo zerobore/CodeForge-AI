@@ -32,6 +32,12 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LczmJEtAAAAAAB6XzfY3WzMQ-OPRLCL-iealzhp"></script>
+    
+    <!-- Google Ads -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3080788861593401" crossorigin="anonymous"></script>
 </head>
 <body class="theme-dark">
     <!-- Skip Link for Accessibility -->
@@ -533,6 +539,11 @@ developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</co
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Google Ads - Below Features -->
+            <div class="ads-container">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3080788861593401" data-ad-slot="1234567890" data-ad-format="auto" data-full-width-responsive="true"></ins>
             </div>
             
             <!-- VIP Promo Section -->
@@ -1065,9 +1076,10 @@ developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</co
                                 <li class="included"><i class="fas fa-check"></i> Ad-free experience</li>
                                 <li class="included"><i class="fas fa-check"></i> Priority support</li>
                             </ul>
-                            <button class="btn btn-vip btn-lg" id="subscribe-btn">
-                                <i class="fas fa-crown"></i> Subscribe Now
+                            <button class="btn btn-vip btn-lg" id="subscribe-btn" onclick="document.getElementById('promo-code-input').focus(); document.getElementById('page-vip').scrollIntoView();">
+                                <i class="fas fa-ticket-alt"></i> Use Promo Code
                             </button>
+                            <p class="promo-hint">Have a promo code? Enter it below to activate VIP!</p>
                         </div>
                     </div>
                 </div>
@@ -1113,6 +1125,39 @@ developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</co
                             <span>Renewal Date:</span>
                             <span id="renewal-date">N/A</span>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Promo Code Section -->
+                <div class="promo-code-section">
+                    <h3><i class="fas fa-ticket-alt"></i> Activate VIP with Promo Code</h3>
+                    <p>Enter a promo code below to unlock VIP features including Claude AI access and ad-free experience.</p>
+                    <form id="promo-code-form" class="promo-code-form">
+                        <div class="form-group">
+                            <label for="promo-code-input">Promo Code</label>
+                            <input type="text" id="promo-code-input" placeholder="Enter promo code (e.g., X7K9-P2L4-MN6R-Q8W2)" required>
+                            <button type="submit" class="btn btn-vip">
+                                <i class="fas fa-key"></i> Activate
+                            </button>
+                        </div>
+                    </form>
+                    <div class="promo-info">
+                        <p><i class="fas fa-info-circle"></i> Each promo code can be used <strong>unlimited times</strong>.</p>
+                        <p><i class="fas fa-lightbulb"></i> VIP includes: Claude AI, Premium Projects, Ad-free experience</p>
+                    </div>
+                </div>
+                
+                <!-- Admin Section (hidden by default) -->
+                <div class="admin-section admin-only" style="display: none;">
+                    <h3><i class="fas fa-user-shield"></i> Admin Panel</h3>
+                    <p>Welcome, Admin! You have full access to all features.</p>
+                    <div class="admin-actions">
+                        <button class="btn btn-admin" onclick="alert('Admin features coming soon!')">
+                            <i class="fas fa-cog"></i> Manage Settings
+                        </button>
+                        <button class="btn btn-admin" onclick="alert('Admin features coming soon!')">
+                            <i class="fas fa-users"></i> Manage Users
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1529,6 +1574,16 @@ developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</co
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LczmJEtAAAAAAB6XzfY3WzMQ-OPRLCL-iealzhp"></script>
+    
+    <!-- Google Ads -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3080788861593401" crossorigin="anonymous"></script>
+    
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/data.js"></script>
@@ -1542,5 +1597,13 @@ developer.<span class="build</span>(<span class="str">"Amazing App"</span>);</co
     <script src="js/ai-assistant.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/app.js"></script>
+    
+    <!-- Initialize Ads -->
+    <script>
+        // Initialize Google Ads
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+    </script>
 </body>
 </html>
