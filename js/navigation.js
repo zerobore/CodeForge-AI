@@ -105,6 +105,9 @@ const Navigation = {
             case 'auth':
                 AuthFormManager?.init();
                 break;
+            case 'admin':
+                AdminManager?.init();
+                break;
         }
     },
     

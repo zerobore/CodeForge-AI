@@ -213,11 +213,13 @@ const DashboardManager = {
             const projectsData = JSON.parse(localStorage.getItem(CONFIG.APP.PROJECTS_STORAGE_KEY) || '{}');
             const projectCount = Object.keys(projectsData).length;
             
-            // Simulate some stats (in real app, these come from backend)
+            // AI conversations are tracked by the assistant (no more random values)
+            const aiUsage = JSON.parse(localStorage.getItem(CONFIG.APP.AI_USAGE_KEY) || '{}');
+            
             const stats = {
                 lessons: completedLessons,
                 projects: Math.max(projectCount, 0),
-                aiChats: Math.floor(Math.random() * 10), // Demo value
+                aiChats: aiUsage.conversations || 0,
                 streak: this.calculateStreak()
             };
             

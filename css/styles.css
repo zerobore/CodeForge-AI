@@ -4613,3 +4613,822 @@ input:checked + .slider::before {
         box-shadow: 0 0 80px rgba(245, 158, 11, 0.6);
     }
 }
+/* ============================================
+   v1.1.0 ADDITIONS - AI tiers, chat themes,
+   admin panel, and responsive overhaul
+   ============================================ */
+
+.hidden {
+    display: none !important;
+}
+
+/* ---------- AI tier badge (sidebar) ---------- */
+
+.ai-tier-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-sm);
+}
+
+.ai-tier-badge i {
+    color: var(--text-tertiary);
+}
+
+.ai-tier-badge span {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ai-tier-badge small {
+    color: var(--text-tertiary);
+    margin-left: auto;
+    font-size: 11px;
+    text-align: right;
+}
+
+.ai-tier-badge.tier-guest,
+.ai-tier-badge.tier-member { border-color: rgba(148, 163, 184, 0.4); }
+.ai-tier-badge.tier-google { border-color: rgba(52, 168, 83, 0.5); }
+.ai-tier-badge.tier-google > i { color: #34a853; }
+.ai-tier-badge.tier-vip { border-color: rgba(245, 158, 11, 0.5); }
+.ai-tier-badge.tier-vip > i { color: var(--vip-color); }
+.ai-tier-badge.tier-admin { border-color: rgba(239, 68, 68, 0.5); }
+.ai-tier-badge.tier-admin > i { color: var(--error-color); }
+
+/* ---------- Tier notice bar (under chat header) ---------- */
+
+.ai-tier-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+}
+
+.ai-tier-notice i {
+    color: var(--accent-primary);
+}
+
+.ai-tier-notice a {
+    color: var(--accent-secondary);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.ai-tier-notice.all-unlocked {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.03));
+    border-bottom-color: rgba(245, 158, 11, 0.35);
+}
+
+.ai-tier-notice.all-unlocked i {
+    color: var(--vip-color);
+}
+
+/* ---------- Provider lock icons ---------- */
+
+.provider-btn {
+    position: relative;
+}
+
+.provider-lock {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.provider-btn.locked {
+    opacity: 0.65;
+}
+
+.provider-btn.locked:hover {
+    opacity: 1;
+    border-color: var(--vip-color);
+}
+
+/* ---------- Chat theme section (sidebar) ---------- */
+
+.chat-theme-section {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chat-theme-section > label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.chat-theme-section > label i {
+    color: var(--accent-primary);
+}
+
+.chat-theme-section > label strong {
+    color: var(--text-primary);
+}
+
+.chat-theme-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+/* ---------- Account badge: Google ---------- */
+
+.account-status-badge.google {
+    background: rgba(52, 168, 83, 0.15);
+    color: #34a853;
+    border: 1px solid rgba(52, 168, 83, 0.4);
+}
+
+/* ============================================
+   ADMIN PANEL
+   ============================================ */
+
+.admin-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-top: var(--spacing-lg);
+}
+
+.admin-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    overflow-x: auto;
+}
+
+.admin-tab {
+    flex: 1 0 auto;
+    padding: 14px 22px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.admin-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.admin-tab.active {
+    color: var(--accent-secondary);
+    border-bottom-color: var(--accent-primary);
+    background: var(--bg-secondary);
+}
+
+.admin-tab-panel {
+    padding: var(--spacing-lg);
+    min-height: 200px;
+}
+
+/* Overview */
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-light);
+}
+
+.admin-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.admin-stat-icon.blue   { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.admin-stat-icon.gold   { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.admin-stat-icon.green  { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.admin-stat-icon.purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+.admin-stat-value {
+    font-size: var(--font-2xl);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.admin-stat-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+}
+
+.admin-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.admin-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+}
+
+.admin-card h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+    font-size: var(--font-base);
+}
+
+.admin-card h4 i {
+    color: var(--accent-primary);
+}
+
+.admin-usage-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: var(--font-sm);
+}
+
+.usage-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.usage-bar {
+    height: 8px;
+    background: var(--bg-hover);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.usage-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--accent-gradient);
+    transition: width 0.6s ease;
+}
+
+.usage-count {
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.admin-status-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-status-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+.admin-status-list li:last-child {
+    border-bottom: none;
+}
+
+.admin-status-list li i {
+    color: var(--success-color);
+    width: 18px;
+    text-align: center;
+}
+
+.admin-status-list li span {
+    margin-left: auto;
+    font-weight: 600;
+}
+
+.status-ok { color: var(--success-color); }
+.status-warn { color: var(--warning-color); }
+
+/* Promo codes tab */
+
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-md);
+}
+
+.admin-note {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    max-width: 640px;
+}
+
+.admin-note i {
+    color: var(--info-color);
+    margin-right: 4px;
+}
+
+.admin-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-sm);
+    min-width: 640px;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: var(--font-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tr:hover td {
+    background: var(--bg-hover);
+}
+
+.admin-actions-cell {
+    white-space: nowrap;
+}
+
+.admin-actions-cell .icon-btn {
+    margin-right: 4px;
+}
+
+.promo-code-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+}
+
+.promo-code-chip.admin {
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+}
+
+/* Badges */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.badge-admin   { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+.badge-vip     { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+.badge-google  { background: rgba(52, 168, 83, 0.15); color: #34a853; border: 1px solid rgba(52, 168, 83, 0.35); }
+.badge-info    { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+.badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+.badge-danger  { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+.badge-muted   { background: var(--bg-hover); color: var(--text-tertiary); border: 1px solid var(--border-color); }
+
+/* Users tab */
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-cell small {
+    display: block;
+    color: var(--text-muted);
+}
+
+.user-avatar-mini {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Activity tab */
+
+.activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    gap: 14px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-hover);
+    color: var(--accent-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.activity-body span {
+    color: var(--text-primary);
+    font-size: var(--font-sm);
+}
+
+.activity-body small {
+    display: block;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-size: 11px;
+}
+
+/* ============================================
+   RESPONSIVE OVERHAUL (v1.1.0)
+   Mobile-first fixes layered after base queries
+   ============================================ */
+
+.ai-sidebar-toggle {
+    display: none; /* hidden on desktop; shown by the tablet/mobile rule below */
+}
+
+/* Tablet & below: AI sidebar becomes a slide-in drawer */
+@media (max-width: 1024px) {
+    .ai-wrapper {
+        position: relative;
+        height: calc(100vh - var(--header-height));
+        overflow: hidden;
+    }
+
+    .ai-sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 40;
+        width: 300px;
+        max-width: 85vw;
+        max-height: none;
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: none;
+    }
+
+    .ai-wrapper.sidebar-open .ai-sidebar {
+        transform: translateX(0);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .ai-main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .ai-sidebar-toggle {
+        display: inline-flex !important;
+    }
+
+    .admin-tab-panel {
+        padding: var(--spacing-md);
+    }
+
+    /* Better touch targets for header icon buttons */
+    .theme-btn,
+    .icon-btn {
+        min-width: 42px;
+        min-height: 42px;
+    }
+}
+
+.ai-sidebar-toggle {
+    display: none;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    /* Header: tighten spacing, keep actions reachable */
+    .main-header .container {
+        gap: var(--spacing-sm);
+    }
+
+    .nav-right {
+        gap: 6px;
+    }
+
+    .btn-vip-nav {
+        padding: 8px 12px;
+        font-size: var(--font-sm);
+    }
+
+    /* Mobile nav drawer: scrollable, with dividers */
+    .mobile-nav {
+        max-height: calc(100vh - var(--header-height));
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-nav-link {
+        padding: 14px 20px;
+    }
+
+    /* Hero */
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .hero-stats {
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    /* Section CTA rows stack nicely */
+    .features-cta,
+    .playground-cta,
+    .showcase-cta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    /* AI chat page */
+    .ai-tier-notice {
+        padding: 7px 12px;
+        font-size: var(--font-xs);
+    }
+
+    .chat-header {
+        padding: 10px 14px;
+    }
+
+    .chat-input-area {
+        padding: 10px;
+    }
+
+    .input-hints {
+        display: none;
+    }
+
+    .input-wrapper {
+        padding: 6px;
+    }
+
+    #chat-input {
+        font-size: 16px; /* prevents iOS zoom-on-focus */
+    }
+
+    .message {
+        gap: 10px;
+    }
+
+    .message-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    /* Chat theme picker: 2 columns on phones */
+    .chat-theme-picker {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Admin panel on mobile */
+    .admin-tab {
+        padding: 12px 14px;
+        font-size: var(--font-xs);
+    }
+
+    .admin-stat-card {
+        padding: var(--spacing-md);
+    }
+
+    .admin-stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 17px;
+    }
+
+    .admin-stat-value {
+        font-size: var(--font-xl);
+    }
+
+    .admin-usage-row {
+        grid-template-columns: 92px 1fr 34px;
+    }
+
+    /* Auth page */
+    .auth-wrapper {
+        padding: var(--spacing-md) 0;
+    }
+
+    .auth-forms {
+        padding: var(--spacing-md);
+    }
+
+    /* Toasts don't overflow small screens */
+    .toast-container {
+        left: 12px;
+        right: 12px;
+        width: auto;
+    }
+
+    /* Modals fit the viewport */
+    .modal-overlay {
+        padding: var(--spacing-md);
+        overflow-y: auto;
+    }
+
+    /* Dashboard stats + admin overview stack */
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: var(--spacing-md);
+    }
+
+    /* Footer spacing */
+    .footer-grid {
+        gap: var(--spacing-lg);
+    }
+
+    /* Learning layout */
+    .lesson-navigation {
+        gap: 8px;
+    }
+
+    /* Promo form stacks input + button */
+    .promo-code-form .form-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .promo-code-form .form-group input {
+        width: 100%;
+    }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+    :root {
+        --header-height: 60px;
+    }
+
+    .logo-text {
+        font-size: 16px;
+    }
+
+    .dashboard-stats,
+    .chat-theme-picker {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-cell strong {
+        font-size: var(--font-sm);
+    }
+
+    .hero-stats {
+        justify-content: space-around;
+    }
+}
+
+/* Touch devices: larger tap areas everywhere */
+@media (hover: none) and (pointer: coarse) {
+    .icon-btn,
+    .toggle-password,
+    .toast-close,
+    .copy-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .provider-btn,
+    .quick-action-btn,
+    .chat-theme-swatch {
+        min-height: 44px;
+    }
+}
+
+/* Reduced motion for app-level animations */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
