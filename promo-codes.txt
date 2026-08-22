@@ -1,8 +1,10 @@
-CODE FORGE - VIP PROMO CODES
+CODE FORGE - VIP PROMO CODES (v1.1.0)
 ================================
 
-These promo codes provide UNLIMITED uses for VIP access.
-VIP includes: Claude AI access + Ad-free experience
+Each promo code works ONCE PER ACCOUNT (single-use per user,
+codes are case-insensitive and trimmed automatically).
+VIP includes: ALL AI models (ChatGPT + Gemini + Claude),
+all 8 animated chat themes, ad-free experience.
 
 --- STANDARD PROMO CODES (10) ---
 1. X7K9-P2L4-MN6R-Q8W2
@@ -18,15 +20,20 @@ VIP includes: Claude AI access + Ad-free experience
 
 --- ADMIN PROMO CODE ---
 ADMIN: ZB-00-11-22-33
-(Unlocks ADMIN MODE with full access)
+(Unlocks ADMIN MODE: all AI models + the Admin Panel
+with promo-code management, user management, and the
+platform activity log)
 
 --- INSTRUCTIONS ---
-- Users can enter any promo code on the VIP page
-- Each code has UNLIMITED uses
-- VIP status is saved in user account
-- Admin code enables special admin features
+- Users enter a promo code on the VIP page or in the account menu
+- Each code is single-use PER ACCOUNT (a code can be redeemed by
+  different accounts, but only once by each)
+- VIP status is persisted per user and survives session expiry
+- Admins can generate new codes, disable/enable codes, and
+  grant or revoke VIP from the Admin Panel
+- Redemption counts appear in Admin Panel -> Promo Codes
 
 --- SECURITY NOTE ---
 - These codes are hard-coded in the frontend for demo purposes
 - For production, use a backend service to validate codes
-- Generated on: 2026-08-21
+- Updated on: 2026-08-22 (v1.1.0)

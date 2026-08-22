@@ -192,8 +192,8 @@ init() {
     getInfo() {
         return {
             name: CONFIG.APP.NAME,
-            version: CONFIG.APP.version,
-            description: CONFIG.APP.description,
+            version: CONFIG.APP.VERSION,
+            description: CONFIG.APP.DESCRIPTION,
             currentUser: AuthManager.isLoggedIn() ? {
                 name: AuthManager.getDisplayName(),
                 email: AuthManager.user?.email,
@@ -342,7 +342,7 @@ console.log(`
 ║   ╚══▀▀═╝  ╚═════╝ ╚═╝   ╚═╝   ╚══════╝║
 ║                                        ║
 ║      Premium Coding Platform            ║
-║           v${CONFIG.APP.version}                     ║
+║           v${CONFIG.APP.VERSION}                     ║
 ╚══════════════════════════════════════╝`, 
 'color: #6366f1; font-family: monospace; font-size: 10px; line-height: 13px;'
 );

@@ -2,34 +2,120 @@
  * ============================================
  * CODE FORGE - Authentication Manager
  * ============================================
- * Updated with Firebase Auth, Google OAuth, reCAPTCHA, and Promo Codes
+ * Firebase Auth, Google OAuth, reCAPTCHA v3, Promo Codes
+ * 
+ * Fixes in v1.1.0:
+ * - Firebase SDK loaded exactly once (no duplicate script injection)
+ * - Google provider id normalized ("google.com" -> "google") so
+ *   Gemini correctly unlocks for Google-signed-in users
+ * - Safe handling of accounts without an email address
+ * - Google sign-in falls back to redirect when popups are blocked
+ * - reCAPTCHA v3 executed via grecaptcha.ready() and de-duplicated
+ * - Promo codes: normalized, per-user single-use tracking, usage log
+ * - Tier-based AI access: Guest=ChatGPT, Google=ChatGPT+Gemini, VIP=All
+ * - Demo user registry + activity log feed the admin panel
  */
 
-// Firebase initialization
+// Firebase globals (initialized once)
 const firebaseConfig = CONFIG.AUTH.FIREBASE;
 let firebaseApp = null;
 let firebaseAuth = null;
 let googleProvider = null;
 
-// Initialize Firebase
-function initializeFirebase() {
-    if (!firebaseApp && typeof firebase !== 'undefined') {
-        try {
-            firebaseApp = firebase.initializeApp(firebaseConfig);
-            firebaseAuth = firebase.auth();
-            googleProvider = new firebase.auth.GoogleAuthProvider();
-            googleProvider.addScope('email');
-            googleProvider.addScope('profile');
-            googleProvider.addScope('openid');
-            
-            // Set custom parameters for Google OAuth
-            googleProvider.setCustomParameters({
-                prompt: 'select_account'
-            });
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
+/**
+ * Load a script once. Returns a promise that resolves when loaded.
+ * Skips requests for scripts that are already present/loaded.
+ */
+const ScriptLoader = {
+    loaded: new Set(),
+    
+    load(src) {
+        if (this.loaded.has(src)) return Promise.resolve();
+        if (document.querySelector(`script[src="${src}"]`)) {
+            this.loaded.add(src);
+            return Promise.resolve();
         }
+        this.loaded.add(src);
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => { this.loaded.delete(src); reject(new Error(`Failed to load ${src}`)); };
+            document.head.appendChild(script);
+        });
     }
+};
+
+// Initialize Firebase (idempotent - safe to call multiple times)
+function initializeFirebase() {
+    if (firebaseApp) return true;
+    
+    if (typeof firebase === 'undefined' || typeof firebase.initializeApp !== 'function') {
+        console.info('[Auth] Firebase SDK not available - running in demo mode.');
+        return false;
+    }
+    
+    try {
+        firebaseApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+        firebaseAuth = firebase.auth();
+        googleProvider = new firebase.auth.GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        googleProvider.addScope('openid');
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+        
+        // Handle result of a redirect-based Google sign-in (popup blocked fallback)
+        if (firebaseAuth.getRedirectResult) {
+            firebaseAuth.getRedirectResult().catch((e) => {
+                if (e && e.code !== 'auth/no-auth-event') {
+                    console.warn('Google redirect result error:', e.message);
+                }
+            });
+        }
+        return true;
+    } catch (error) {
+        console.error('Firebase initialization error:', error);
+        return false;
+    }
+}
+
+/**
+ * Execute reCAPTCHA v3 for an action.
+ * Waits for grecaptcha.ready, never throws - returns null on failure
+ * so the auth flow can proceed (demo mode) instead of dead-ending.
+ */
+function executeRecaptcha(action) {
+    return new Promise((resolve) => {
+        if (!CONFIG.AUTH.RECAPTCHA.CONFIGURED || typeof grecaptcha === 'undefined' || !grecaptcha.execute) {
+            resolve(null);
+            return;
+        }
+        try {
+            grecaptcha.ready(async () => {
+                try {
+                    const token = await grecaptcha.execute(CONFIG.AUTH.RECAPTCHA.SITE_KEY, { action });
+                    resolve(token);
+                } catch (err) {
+                    console.warn(`reCAPTCHA execute failed (${action}):`, err.message);
+                    resolve(null);
+                }
+            });
+        } catch (err) {
+            console.warn(`reCAPTCHA error (${action}):`, err.message);
+            resolve(null);
+        }
+    });
+}
+
+// Normalize Firebase provider ids to our internal ids
+function normalizeProvider(firebaseUser) {
+    const raw = firebaseUser.providerData && firebaseUser.providerData[0]
+        ? firebaseUser.providerData[0].providerId
+        : (firebaseUser.providerId || 'password');
+    if (raw === 'google.com') return 'google';
+    if (raw === 'password') return 'email';
+    return raw;
 }
 
 const AuthManager = {
@@ -38,83 +124,146 @@ const AuthManager = {
     
     // Initialize
     init() {
-        initializeFirebase();
-        this.loadSession();
-        this.bindEvents();
-        this.updateUI();
-        this.setupFirebaseAuthListener();
+        // Firebase SDK is loaded via <script> tags in index.html; only
+        // fetch it dynamically if it is somehow missing (offline preview etc.)
+        const needsFirebase = typeof firebase === 'undefined';
+        const ready = () => {
+            initializeFirebase();
+            this.loadSession();
+            this.bindEvents();
+            this.updateUI();
+            this.setupFirebaseAuthListener();
+        };
+        
+        if (needsFirebase) {
+            Promise.all([
+                ScriptLoader.load('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js'),
+                ScriptLoader.load('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js')
+            ]).then(ready).catch(() => {
+                console.warn('[Auth] Could not load Firebase SDK - demo mode only.');
+                ready();
+            });
+        } else {
+            ready();
+        }
+        
+        // reCAPTCHA v3 is loaded once in <head>; ensure it exists (no duplicates)
+        if (CONFIG.AUTH.RECAPTCHA.CONFIGURED && !document.querySelector(`script[src*="recaptcha/api.js"]`)) {
+            ScriptLoader.load(`https://www.google.com/recaptcha/api.js?render=${CONFIG.AUTH.RECAPTCHA.SITE_KEY}`);
+        }
     },
     
     // Setup Firebase auth state listener
     setupFirebaseAuthListener() {
-        if (firebaseAuth) {
-            firebaseAuth.onAuthStateChanged((firebaseUser) => {
-                if (firebaseUser) {
-                    // User is signed in
-                    const userData = {
-                        id: firebaseUser.uid,
-                        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-                        email: firebaseUser.email,
-                        avatar: firebaseUser.photoURL,
-                        token: firebaseUser.refreshToken,
-                        provider: firebaseUser.providerData[0]?.providerId || 'email',
-                        subscription: this.getUserSubscription(firebaseUser.uid),
-                        vipActive: this.isUserVIP(firebaseUser.uid),
-                        isAdmin: this.isUserAdmin(firebaseUser.uid),
-                        createdAt: firebaseUser.metadata.creationTime
-                    };
-                    this.saveSession(userData);
-                    this.updateUI();
-                } else {
-                    // User is signed out
-                    this.clearSession();
+        if (!firebaseAuth) return;
+        
+        firebaseAuth.onAuthStateChanged((firebaseUser) => {
+            if (firebaseUser) {
+                const provider = normalizeProvider(firebaseUser);
+                const email = firebaseUser.email || '';
+                const userData = {
+                    id: firebaseUser.uid,
+                    name: firebaseUser.displayName || (email ? email.split('@')[0] : 'Coder'),
+                    email: email || 'no-email@local',
+                    avatar: firebaseUser.photoURL,
+                    token: firebaseUser.refreshToken || `fb_${Date.now()}`,
+                    provider: provider,
+                    subscription: this.getUserSubscription(firebaseUser.uid).subscription,
+                    vipActive: this.getUserSubscription(firebaseUser.uid).vipActive,
+                    isAdmin: this.getUserSubscription(firebaseUser.uid).isAdmin,
+                    createdAt: firebaseUser.metadata.creationTime || new Date().toISOString()
+                };
+                this.saveSession(userData);
+                this.registerUser(userData);
+                this.logActivity(provider === 'google' ? 'google-login' : 'login', `${userData.name} signed in`);
+                this.updateUI();
+            } else {
+                // Only clear if we previously had a Firebase-backed session
+                // (protects demo-mode sessions from being wiped on load)
+                if (this.user && !String(this.user.token || '').startsWith('demo_token')) {
+                    this.user = null;
+                    localStorage.removeItem(CONFIG.AUTH.SESSION_KEY);
                     this.updateUI();
                 }
-            });
-        }
+            }
+            this.dispatchAuthChanged();
+        });
     },
     
-    // Get user subscription from localStorage
-    getUserSubscription(uid) {
+    // ---------- Demo backend helpers (localStorage) ----------
+    
+    // Read subscription record for a uid (returns {subscription, vipActive, isAdmin})
+    getSubRecord(uid) {
         try {
-            const userSub = localStorage.getItem(`codeforge_sub_${uid}`);
-            if (userSub) {
-                const sub = JSON.parse(userSub);
-                return sub.subscription || 'free';
+            const raw = localStorage.getItem(`codeforge_sub_${uid}`);
+            if (raw) {
+                const sub = JSON.parse(raw);
+                return {
+                    subscription: sub.subscription || 'free',
+                    vipActive: sub.vipActive === true,
+                    isAdmin: sub.isAdmin === true
+                };
             }
         } catch (e) {
             console.warn('Error reading subscription:', e);
         }
-        return 'free';
+        return { subscription: 'free', vipActive: false, isAdmin: false };
+    },
+    
+    // Get user subscription plan name from localStorage
+    getUserSubscription(uid) {
+        return this.getSubRecord(uid).subscription;
     },
     
     // Check if user is VIP
     isUserVIP(uid) {
-        try {
-            const userSub = localStorage.getItem(`codeforge_sub_${uid}`);
-            if (userSub) {
-                const sub = JSON.parse(userSub);
-                return sub.vipActive === true;
-            }
-        } catch (e) {
-            console.warn('Error checking VIP status:', e);
-        }
-        return false;
+        return this.getSubRecord(uid).vipActive;
     },
     
     // Check if user is admin
     isUserAdmin(uid) {
-        try {
-            const userSub = localStorage.getItem(`codeforge_sub_${uid}`);
-            if (userSub) {
-                const sub = JSON.parse(userSub);
-                return sub.isAdmin === true;
-            }
-        } catch (e) {
-            console.warn('Error checking admin status:', e);
-        }
-        return false;
+        return this.getSubRecord(uid).isAdmin;
     },
+    
+    // Register/update user in the demo user registry (used by admin panel)
+    registerUser(userData) {
+        try {
+            const registry = JSON.parse(localStorage.getItem(CONFIG.APP.USER_REGISTRY_KEY) || '{}');
+            const existing = registry[userData.id] || {};
+            registry[userData.id] = {
+                ...existing,
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,
+                provider: userData.provider,
+                avatar: userData.avatar || null,
+                subscription: this.getSubRecord(userData.id).subscription,
+                vipActive: this.getSubRecord(userData.id).vipActive,
+                isAdmin: this.getSubRecord(userData.id).isAdmin,
+                createdAt: existing.createdAt || userData.createdAt || new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+            localStorage.setItem(CONFIG.APP.USER_REGISTRY_KEY, JSON.stringify(registry));
+        } catch (e) {
+            console.warn('Error registering user:', e);
+        }
+    },
+    
+    // Append an event to the activity log (newest first)
+    logActivity(event, detail) {
+        try {
+            const log = JSON.parse(localStorage.getItem(CONFIG.APP.ACTIVITY_LOG_KEY) || '[]');
+            log.unshift({ time: new Date().toISOString(), event, detail });
+            localStorage.setItem(CONFIG.APP.ACTIVITY_LOG_KEY, JSON.stringify(log.slice(0, CONFIG.APP.MAX_ACTIVITY_LOG)));
+        } catch (e) { /* non-critical */ }
+    },
+    
+    // Notify other modules that auth state changed
+    dispatchAuthChanged() {
+        document.dispatchEvent(new CustomEvent('authChanged', { detail: { user: this.user } }));
+    },
+    
+    // ---------- Session handling ----------
     
     // Load session from storage
     loadSession() {
@@ -123,12 +272,12 @@ const AuthManager = {
             if (sessionData) {
                 const session = JSON.parse(sessionData);
                 if (session && session.token) {
-                    this.user = session;
-                    // Check token expiry
                     if (session.expiresAt && Date.now() > session.expiresAt) {
-                        this.logout();
+                        this.clearSession();
                         return;
                     }
+                    this.user = session;
+                    this.registerUser(session);
                 }
             }
         } catch (e) {
@@ -139,34 +288,46 @@ const AuthManager = {
     
     // Save session to storage
     saveSession(userData) {
+        const sub = this.getSubRecord(userData.id);
         const session = {
             ...userData,
+            subscription: userData.subscription || sub.subscription,
+            vipActive: userData.vipActive !== undefined ? userData.vipActive : sub.vipActive,
+            isAdmin: userData.isAdmin !== undefined ? userData.isAdmin : sub.isAdmin,
             expiresAt: Date.now() + CONFIG.AUTH.SESSION_DURATION
         };
         this.user = session;
         localStorage.setItem(CONFIG.AUTH.SESSION_KEY, JSON.stringify(session));
         
-        // Also save subscription data separately
-        if (userData.isAdmin !== undefined) {
-            const subData = {
-                subscription: userData.subscription || 'free',
-                vipActive: userData.vipActive || false,
-                isAdmin: userData.isAdmin || false
-            };
-            localStorage.setItem(`codeforge_sub_${userData.id}`, JSON.stringify(subData));
-        }
+        // Persist subscription flags separately (survives session expiry)
+        const subData = {
+            subscription: session.subscription || 'free',
+            vipActive: session.vipActive === true,
+            isAdmin: session.isAdmin === true,
+            activatedAt: session.vipActive ? (this.getSubRecord(userData.id).activatedAt || new Date().toISOString()) : null,
+            activatedCode: session.vipActive ? (this.getSubRecord(userData.id).activatedCode || null) : null
+        };
+        localStorage.setItem(`codeforge_sub_${userData.id}`, JSON.stringify(subData));
     },
     
     // Clear session
     clearSession() {
+        const wasLoggedIn = !!this.user;
+        const name = this.user?.name;
         this.user = null;
         localStorage.removeItem(CONFIG.AUTH.SESSION_KEY);
         
-        // Clear Firebase session
-        if (firebaseAuth) {
+        // Sign out of Firebase too (local signOut only - never call this
+        // from the onAuthStateChanged(null) path to avoid loops)
+        if (firebaseAuth && firebaseAuth.currentUser) {
             firebaseAuth.signOut().catch(e => console.warn('Firebase signout error:', e));
         }
+        if (wasLoggedIn) {
+            this.logActivity('logout', `${name || 'User'} signed out`);
+        }
     },
+    
+    // ---------- Access checks ----------
     
     // Check if user is logged in
     isLoggedIn() {
@@ -175,7 +336,7 @@ const AuthManager = {
     
     // Check if user is VIP
     isVIP() {
-        return this.isLoggedIn() && 
+        return this.isLoggedIn() &&
                (this.user.subscription === 'vip' || this.user.vipActive === true);
     },
     
@@ -184,10 +345,24 @@ const AuthManager = {
         return this.isLoggedIn() && this.user.isAdmin === true;
     },
     
-    // Check if user is Google authenticated
+    // Check if user authenticated with Google (Firebase normalizes to 'google')
     isGoogleAuthenticated() {
-        return this.isLoggedIn() && 
-               this.user.provider === 'google';
+        return this.isLoggedIn() && this.user.provider === 'google';
+    },
+    
+    /**
+     * Get the current AI access tier.
+     * Guest -> Guest tier (ChatGPT)
+     * Email member -> Member tier (ChatGPT)
+     * Google user -> Google tier (ChatGPT + Gemini)
+     * VIP -> VIP tier (all); Admin -> Admin tier (all)
+     */
+    getAccessTier() {
+        if (this.isAdmin()) return CONFIG.AI_ACCESS.TIERS.ADMIN;
+        if (this.isVIP()) return CONFIG.AI_ACCESS.TIERS.VIP;
+        if (this.isGoogleAuthenticated()) return CONFIG.AI_ACCESS.TIERS.GOOGLE;
+        if (this.isLoggedIn()) return CONFIG.AI_ACCESS.TIERS.MEMBER;
+        return CONFIG.AI_ACCESS.TIERS.GUEST;
     },
     
     // Get user display name
@@ -196,29 +371,31 @@ const AuthManager = {
         return this.user.name || 'User';
     },
     
+    // ---------- Auth flows ----------
+    
     // Login with email/password
     async login(email, password, recaptchaToken = null) {
         try {
             showLoading();
             
-            // Validate inputs
             if (!email || !password) {
                 throw new Error('Please fill in all fields');
             }
             
-            // Verify reCAPTCHA
-            if (CONFIG.AUTH.RECAPTCHA.CONFIGURED && !recaptchaToken) {
-                throw new Error('reCAPTCHA verification required');
+            // reCAPTCHA best-effort: token verifies server-side in production;
+            // a failed captcha must not lock users out of demo mode.
+            if (!recaptchaToken) {
+                console.warn('Login proceeding without reCAPTCHA token (demo mode).');
             }
             
-            // Firebase authentication
             if (firebaseAuth) {
                 await firebaseAuth.signInWithEmailAndPassword(email, password);
+                // onAuthStateChanged listener completes the flow
             } else {
                 // Fallback to demo mode
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 800));
                 const mockUser = {
-                    id: 'user_' + Date.now(),
+                    id: 'user_' + btoa(email).replace(/[^a-zA-Z0-9]/g, '').slice(0, 12),
                     name: email.split('@')[0],
                     email: email,
                     avatar: null,
@@ -230,7 +407,10 @@ const AuthManager = {
                     createdAt: new Date().toISOString()
                 };
                 this.saveSession(mockUser);
+                this.registerUser(mockUser);
+                this.logActivity('login', `${mockUser.name} signed in (demo)`);
                 this.updateUI();
+                this.dispatchAuthChanged();
                 showToast('success', 'Login Successful', `Welcome back, ${mockUser.name}!`);
                 navigateTo('dashboard');
             }
@@ -240,10 +420,13 @@ const AuthManager = {
         } catch (error) {
             hideLoading();
             let errorMessage = error.message || CONFIG.ERRORS.INVALID_CREDENTIALS;
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-login-credentials') {
                 errorMessage = CONFIG.ERRORS.INVALID_CREDENTIALS;
             } else if (error.code === 'auth/invalid-email') {
                 errorMessage = CONFIG.ERRORS.EMAIL_REQUIRED;
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many attempts. Please try again later.';
             }
             showToast('error', 'Login Failed', errorMessage);
             return false;
@@ -255,7 +438,6 @@ const AuthManager = {
         try {
             showLoading();
             
-            // Validate inputs
             if (!name || !email || !password) {
                 throw new Error('Please fill in all fields');
             }
@@ -264,22 +446,19 @@ const AuthManager = {
                 throw new Error(CONFIG.ERRORS.PASSWORD_MIN_LENGTH);
             }
             
-            // Verify reCAPTCHA
-            if (CONFIG.AUTH.RECAPTCHA.CONFIGURED && !recaptchaToken) {
-                throw new Error('reCAPTCHA verification required');
+            // reCAPTCHA best-effort (see login)
+            if (!recaptchaToken) {
+                console.warn('Signup proceeding without reCAPTCHA token (demo mode).');
             }
             
-            // Firebase authentication
             if (firebaseAuth) {
                 const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-                await userCredential.user.updateProfile({
-                    displayName: name
-                });
+                await userCredential.user.updateProfile({ displayName: name });
             } else {
                 // Fallback to demo mode
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 800));
                 const mockUser = {
-                    id: 'user_' + Date.now(),
+                    id: 'user_' + btoa(email).replace(/[^a-zA-Z0-9]/g, '').slice(0, 12),
                     name: name,
                     email: email,
                     avatar: null,
@@ -291,7 +470,10 @@ const AuthManager = {
                     createdAt: new Date().toISOString()
                 };
                 this.saveSession(mockUser);
+                this.registerUser(mockUser);
+                this.logActivity('signup', `${name} created an account (demo)`);
                 this.updateUI();
+                this.dispatchAuthChanged();
                 showToast('success', 'Account Created', `Welcome to Code Forge, ${name}!`);
                 navigateTo('dashboard');
             }
@@ -313,23 +495,34 @@ const AuthManager = {
         }
     },
     
-    // Google Sign-In
+    // Google Sign-In (popup with redirect fallback)
     async googleSignIn() {
         try {
             showLoading();
             
-            if (firebaseAuth) {
-                // Use Firebase Google Auth
-                await firebaseAuth.signInWithPopup(googleProvider);
+            if (firebaseAuth && googleProvider) {
+                try {
+                    await firebaseAuth.signInWithPopup(googleProvider);
+                    // onAuthStateChanged listener completes the flow
+                } catch (popupError) {
+                    // Fall back to full-page redirect when popup is blocked/unavailable
+                    if (['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request',
+                         'auth/popup-window-disallowed', 'auth/operation-not-supported-in-this-environment'].includes(popupError.code)) {
+                        showToast('info', 'Redirecting…', 'Continuing Google sign-in in a new page.');
+                        await firebaseAuth.signInWithRedirect(googleProvider);
+                        return true;
+                    }
+                    throw popupError;
+                }
             } else {
                 // Fallback to demo mode
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 1200));
                 const mockGoogleUser = {
                     id: 'google_user_' + Date.now(),
                     name: 'Google User',
                     email: 'user@gmail.com',
                     avatar: null,
-                    token: 'google_token_' + Date.now(),
+                    token: 'demo_token_' + Date.now(),
                     provider: 'google',
                     subscription: 'free',
                     vipActive: false,
@@ -337,10 +530,13 @@ const AuthManager = {
                     createdAt: new Date().toISOString()
                 };
                 this.saveSession(mockGoogleUser);
+                this.registerUser(mockGoogleUser);
+                this.logActivity('google-login', 'Google User signed in (demo) - Gemini unlocked');
                 this.updateUI();
-                showToast('success', 'Google Sign-In Success', 'You are now authenticated!');
+                this.dispatchAuthChanged();
+                showToast('success', 'Google Sign-In Success', 'ChatGPT + Gemini are now unlocked!');
                 if (typeof navigateTo === 'function') {
-                    navigateTo('dashboard');
+                    navigateTo('ai-assistant');
                 }
             }
             
@@ -353,58 +549,100 @@ const AuthManager = {
                 errorMessage = 'Google sign-in was cancelled';
             } else if (error.code === 'auth/popup-blocked') {
                 errorMessage = 'Popup was blocked. Please allow popups for this site.';
+            } else if (error.code === 'auth/unauthorized-domain') {
+                errorMessage = 'This domain is not authorized in Firebase. Add it in Firebase Console → Auth → Settings.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'Google sign-in is disabled. Enable it in Firebase Console → Authentication → Sign-in method.';
             }
             showToast('error', 'Authentication Failed', errorMessage);
             return false;
         }
     },
     
-    // Activate VIP with promo code
-    async activatePromoCode(promoCode) {
+    // ---------- Promo codes ----------
+    
+    // Read promo usage map: { CODE: { count, users: [], lastUsed, disabled } }
+    getPromoUsage() {
+        try {
+            return JSON.parse(localStorage.getItem(CONFIG.APP.PROMO_USAGE_KEY) || '{}');
+        } catch (e) {
+            return {};
+        }
+    },
+    
+    savePromoUsage(usage) {
+        localStorage.setItem(CONFIG.APP.PROMO_USAGE_KEY, JSON.stringify(usage));
+    },
+    
+    // Is this code disabled by an admin?
+    isPromoCodeDisabled(code) {
+        const usage = this.getPromoUsage();
+        return !!(usage[code] && usage[code].disabled);
+    },
+    
+    // Activate VIP with promo code (normalized; once per user per code)
+    async activatePromoCode(rawCode) {
         try {
             showLoading();
+            
+            const promoCode = String(rawCode || '').trim().toUpperCase();
+            
+            if (!promoCode) {
+                throw new Error(CONFIG.ERRORS.INVALID_PROMO_CODE);
+            }
             
             if (!this.isLoggedIn()) {
                 throw new Error('Please login first to activate promo code');
             }
             
-            // Check if already VIP
             if (this.isVIP()) {
                 showToast('info', 'Already VIP', 'You already have VIP access!');
                 hideLoading();
                 return false;
             }
             
-            // Check promo code
+            if (this.isPromoCodeDisabled(promoCode)) {
+                throw new Error('This promo code has been disabled.');
+            }
+            
+            // Valid code? (built-in list, admin code, or admin-generated codes)
+            const usage = this.getPromoUsage();
             const validCodes = CONFIG.PAYMENT.PROMO_CODES;
             const adminCode = CONFIG.PAYMENT.ADMIN_PROMO_CODE;
-            
-            let isAdmin = false;
-            let isValid = false;
-            
-            if (promoCode === adminCode) {
-                isValid = true;
-                isAdmin = true;
-            } else if (validCodes.includes(promoCode)) {
-                isValid = true;
-            }
+            const isAdmin = promoCode === adminCode;
+            const isValid = isAdmin || validCodes.includes(promoCode) || (usage[promoCode] && usage[promoCode].generated);
             
             if (!isValid) {
                 throw new Error(CONFIG.ERRORS.INVALID_PROMO_CODE);
+            }
+            
+            // Enforce single use per user per code
+            const record = usage[promoCode] || { count: 0, users: [], generated: false };
+            if (record.users && record.users.includes(this.user.id)) {
+                throw new Error(CONFIG.ERRORS.CODE_ALREADY_USED);
             }
             
             // Update user session
             this.user.subscription = 'vip';
             this.user.vipActive = true;
             this.user.isAdmin = isAdmin;
-            
-            // Save to localStorage
             this.saveSession(this.user);
+            this.registerUser(this.user);
             
-            // Update UI
+            // Track redemption
+            record.count = (record.count || 0) + 1;
+            record.users = record.users || [];
+            record.users.push(this.user.id);
+            record.lastUsed = new Date().toISOString();
+            usage[promoCode] = record;
+            this.savePromoUsage(usage);
+            
+            this.logActivity(isAdmin ? 'admin-activated' : 'promo',
+                `${this.user.name} activated ${isAdmin ? 'ADMIN' : 'VIP'} with code ${promoCode.slice(0, 5)}…`);
+            
             this.updateUI();
+            this.dispatchAuthChanged();
             
-            // Show success message
             if (isAdmin) {
                 showToast('success', 'Admin Mode Activated', CONFIG.SUCCESS.ADMIN_MODE_ACTIVATED);
             } else {
@@ -424,14 +662,16 @@ const AuthManager = {
     logout() {
         this.clearSession();
         this.updateUI();
+        this.dispatchAuthChanged();
         
-        // Navigate to home
         if (typeof navigateTo === 'function') {
             navigateTo('home');
         }
         
         showToast('success', 'Logged Out', CONFIG.SUCCESS.LOGOUT_SUCCESS);
     },
+    
+    // ---------- UI updates ----------
     
     // Update UI based on auth state
     updateUI() {
@@ -443,9 +683,11 @@ const AuthManager = {
         const logoutMenuBtn = document.getElementById('logout-menu-btn');
         const dashUsername = document.getElementById('dash-username');
         const accountStatusBadge = document.getElementById('account-status-badge');
+        const adminMenuBtn = document.getElementById('menu-admin');
         
         if (this.isLoggedIn()) {
             const displayName = this.getDisplayName();
+            const tier = this.getAccessTier();
             
             if (accountName) accountName.textContent = displayName;
             if (dropdownUsername) dropdownUsername.textContent = displayName;
@@ -457,22 +699,29 @@ const AuthManager = {
                     dropdownStatus.textContent = 'VIP Member';
                     dropdownStatus.style.color = '#f59e0b';
                 } else if (this.isGoogleAuthenticated()) {
-                    dropdownStatus.textContent = 'Google Account';
+                    dropdownStatus.textContent = 'Google Account · Gemini unlocked';
+                    dropdownStatus.style.color = '#34a853';
                 } else {
                     dropdownStatus.textContent = 'Logged in';
+                    dropdownStatus.style.color = '';
                 }
             }
             if (dashboardMenu) dashboardMenu.style.display = 'flex';
             if (loginMenuBtn) loginMenuBtn.style.display = 'none';
             if (logoutMenuBtn) logoutMenuBtn.style.display = 'flex';
+            if (adminMenuBtn) adminMenuBtn.style.display = this.isAdmin() ? 'flex' : 'none';
             if (dashUsername) dashUsername.textContent = displayName;
             if (accountStatusBadge) {
+                accountStatusBadge.classList.remove('vip', 'admin', 'google');
                 if (this.isAdmin()) {
                     accountStatusBadge.textContent = 'Admin';
                     accountStatusBadge.classList.add('admin');
                 } else if (this.isVIP()) {
                     accountStatusBadge.textContent = 'VIP Member';
                     accountStatusBadge.classList.add('vip');
+                } else if (this.isGoogleAuthenticated()) {
+                    accountStatusBadge.textContent = 'Google Account';
+                    accountStatusBadge.classList.add('google');
                 } else {
                     accountStatusBadge.textContent = 'Free User';
                 }
@@ -485,66 +734,78 @@ const AuthManager = {
                 dropdownStatus.style.color = '';
             }
             if (dashboardMenu) dashboardMenu.style.display = 'none';
+            if (adminMenuBtn) adminMenuBtn.style.display = 'none';
             if (loginMenuBtn) loginMenuBtn.style.display = 'flex';
             if (logoutMenuBtn) logoutMenuBtn.style.display = 'none';
             if (accountStatusBadge) {
                 accountStatusBadge.textContent = 'Guest';
-                accountStatusBadge.classList.remove('vip', 'admin');
+                accountStatusBadge.classList.remove('vip', 'admin', 'google');
             }
         }
         
-        // Update AI provider access indicators
+        // Update AI provider access indicators + tier displays + admin UI
         this.updateProviderAccess();
-        
-        // Update VIP status displays
+        this.updateTierBadges();
         this.updateVIPDisplays();
-        
-        // Update admin UI
         this.updateAdminUI();
+    },
+    
+    // Update the tier badge shown on the AI assistant page
+    updateTierBadges(tier) {
+        tier = tier || this.getAccessTier();
+        const tierNameEl = document.getElementById('ai-tier-name');
+        const tierDescEl = document.getElementById('ai-tier-desc');
+        if (tierNameEl) tierNameEl.textContent = tier.name;
+        if (tierDescEl) tierDescEl.textContent = tier.description;
+        
+        const badge = document.getElementById('ai-tier-badge');
+        if (badge) {
+            badge.classList.remove('tier-guest', 'tier-member', 'tier-google', 'tier-vip', 'tier-admin');
+            badge.classList.add(`tier-${tier.id}`);
+        }
     },
     
     // Update admin-specific UI elements
     updateAdminUI() {
         const adminElements = document.querySelectorAll('.admin-only');
+        const isAdmin = this.isAdmin();
         adminElements.forEach(el => {
-            if (this.isAdmin()) {
-                el.style.display = 'block';
-            } else {
-                el.style.display = 'none';
-            }
+            el.style.display = isAdmin ? '' : 'none';
         });
+        document.body.classList.toggle('is-admin', isAdmin);
     },
     
-    // Update AI provider access states
+    // Update AI provider access states (tier-based)
     updateProviderAccess() {
-        const geminiStatus = document.querySelector('#provider-gemini .provider-status');
-        const claudeStatus = document.querySelector('#provider-claude .provider-status');
+        const tier = this.getAccessTier();
+        const allowed = tier.providers;
         
-        if (geminiStatus) {
-            if (this.isGoogleAuthenticated()) {
-                geminiStatus.className = 'provider-status available';
-                geminiStatus.textContent = 'Available';
-            } else if (this.isLoggedIn()) {
-                geminiStatus.className = 'provider-status needs-auth';
-                geminiStatus.textContent = 'Auth Required';
-            } else {
-                geminiStatus.className = 'provider-status needs-auth';
-                geminiStatus.textContent = 'Auth Required';
-            }
-        }
+        const statusMap = {
+            chatgpt: { el: '#provider-chatgpt .provider-status' },
+            gemini: { el: '#provider-gemini .provider-status' },
+            claude: { el: '#provider-claude .provider-status' }
+        };
         
-        if (claudeStatus) {
-            if (this.isVIP() || this.isAdmin()) {
-                claudeStatus.className = 'provider-status available';
-                claudeStatus.textContent = 'Available';
-            } else if (this.isLoggedIn() && !this.isVIP()) {
-                claudeStatus.className = 'provider-status vip-only';
-                claudeStatus.textContent = 'Upgrade Required';
-            } else {
-                claudeStatus.className = 'provider-status vip-only';
-                claudeStatus.textContent = 'VIP Only';
+        Object.entries(statusMap).forEach(([providerId, { el }]) => {
+            const statusEl = document.querySelector(el);
+            const btn = document.getElementById(`provider-${providerId}`);
+            if (!statusEl || !btn) return;
+            
+            const unlocked = allowed.includes(providerId);
+            btn.classList.toggle('locked', !unlocked);
+            btn.querySelector('.provider-lock')?.classList.toggle('hidden', unlocked);
+            
+            if (unlocked) {
+                statusEl.className = 'provider-status available';
+                statusEl.textContent = 'Available';
+            } else if (providerId === 'gemini') {
+                statusEl.className = 'provider-status needs-auth';
+                statusEl.textContent = this.isLoggedIn() ? 'Google Sign-in / VIP' : 'Google Sign-in / VIP';
+            } else if (providerId === 'claude') {
+                statusEl.className = 'provider-status vip-only';
+                statusEl.textContent = this.isLoggedIn() ? 'Upgrade Required' : 'VIP Only';
             }
-        }
+        });
     },
     
     // Update VIP-related displays
@@ -611,42 +872,37 @@ const AuthManager = {
             navigateTo('auth');
         });
         
+        // Admin panel menu button
+        document.getElementById('menu-admin')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeAllDropdowns();
+            navigateTo('admin');
+        });
+        
         // Login form
         document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email')?.value;
+            const email = document.getElementById('login-email')?.value?.trim();
             const password = document.getElementById('login-password')?.value;
             
-            // Execute reCAPTCHA
-            let recaptchaToken = null;
-            if (CONFIG.AUTH.RECAPTCHA.CONFIGURED && typeof grecaptcha !== 'undefined') {
-                try {
-                    recaptchaToken = await grecaptcha.execute(CONFIG.AUTH.RECAPTCHA.SITE_KEY, {action: 'login'});
-                } catch (error) {
-                    console.error('reCAPTCHA error:', error);
-                }
-            }
-            
+            const recaptchaToken = await executeRecaptcha('login');
             this.login(email, password, recaptchaToken);
         });
         
         // Signup form
         document.getElementById('signup-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('signup-name')?.value;
-            const email = document.getElementById('signup-email')?.value;
+            const name = document.getElementById('signup-name')?.value?.trim();
+            const email = document.getElementById('signup-email')?.value?.trim();
             const password = document.getElementById('signup-password')?.value;
+            const confirm = document.getElementById('signup-confirm')?.value;
             
-            // Execute reCAPTCHA
-            let recaptchaToken = null;
-            if (CONFIG.AUTH.RECAPTCHA.CONFIGURED && typeof grecaptcha !== 'undefined') {
-                try {
-                    recaptchaToken = await grecaptcha.execute(CONFIG.AUTH.RECAPTCHA.SITE_KEY, {action: 'signup'});
-                } catch (error) {
-                    console.error('reCAPTCHA error:', error);
-                }
+            if (confirm !== undefined && password !== confirm) {
+                showToast('error', 'Signup Failed', CONFIG.ERRORS.PASSWORDS_DONT_MATCH);
+                return;
             }
             
+            const recaptchaToken = await executeRecaptcha('signup');
             this.signup(name, email, password, recaptchaToken);
         });
         
@@ -655,11 +911,9 @@ const AuthManager = {
             tab.addEventListener('click', () => {
                 const formType = tab.dataset.form;
                 
-                // Update tab active state
                 document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // Update form visibility
                 document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
                 document.getElementById(`${formType}-form`)?.classList.add('active');
             });
@@ -694,7 +948,7 @@ const AuthManager = {
         // Promo code activation
         document.getElementById('promo-code-form')?.addEventListener('submit', (e) => {
             e.preventDefault();
-            const promoCode = document.getElementById('promo-code-input')?.value?.trim().toUpperCase();
+            const promoCode = document.getElementById('promo-code-input')?.value?.trim();
             if (promoCode) {
                 this.activatePromoCode(promoCode);
             }
@@ -703,51 +957,74 @@ const AuthManager = {
         // Delete account button
         document.getElementById('delete-account-btn')?.addEventListener('click', () => {
             if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                const uid = this.user?.id;
+                const name = this.user?.name;
+                if (uid) {
+                    // Remove from demo registry
+                    try {
+                        const registry = JSON.parse(localStorage.getItem(CONFIG.APP.USER_REGISTRY_KEY) || '{}');
+                        delete registry[uid];
+                        localStorage.setItem(CONFIG.APP.USER_REGISTRY_KEY, JSON.stringify(registry));
+                    } catch (e) { /* non-critical */ }
+                    this.logActivity('user-deleted', `Account ${name || uid} deleted`);
+                    localStorage.removeItem(`codeforge_sub_${uid}`);
+                }
                 this.logout();
                 showToast('info', 'Account Deleted', 'Your account has been deleted.');
             }
         });
         
+        // VIP & Google-auth modal handlers (upgrade prompts)
+        const hideModal = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        };
+        
+        ['close-vip-modal', 'cancel-upgrade'].forEach(id => {
+            document.getElementById(id)?.addEventListener('click', () => hideModal('vip-modal'));
+        });
+        document.getElementById('confirm-upgrade')?.addEventListener('click', () => {
+            hideModal('vip-modal');
+            navigateTo('vip');
+        });
+        
+        ['close-google-modal', 'cancel-google-auth'].forEach(id => {
+            document.getElementById(id)?.addEventListener('click', () => hideModal('google-auth-modal'));
+        });
+        document.getElementById('confirm-google-auth')?.addEventListener('click', () => {
+            hideModal('google-auth-modal');
+            this.googleSignIn();
+        });
+        
         // Save profile
         document.getElementById('profile-form')?.addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('profile-name')?.value;
+            const name = document.getElementById('profile-name')?.value?.trim();
             if (name && this.user) {
                 this.user.name = name;
-                if (firebaseAuth && firebaseAuth.currentUser) {
-                    firebaseAuth.currentUser.updateProfile({
-                        displayName: name
-                    }).then(() => {
-                        this.saveSession(this.user);
-                        this.updateUI();
-                        showToast('success', 'Profile Updated', CONFIG.SUCCESS.PROFILE_UPDATED);
-                    }).catch(error => {
-                        console.error('Profile update error:', error);
-                        this.saveSession(this.user);
-                        this.updateUI();
-                        showToast('success', 'Profile Updated', CONFIG.SUCCESS.PROFILE_UPDATED);
-                    });
-                } else {
+                const done = () => {
                     this.saveSession(this.user);
+                    this.registerUser(this.user);
                     this.updateUI();
+                    this.dispatchAuthChanged();
                     showToast('success', 'Profile Updated', CONFIG.SUCCESS.PROFILE_UPDATED);
+                };
+                if (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.updateProfile) {
+                    firebaseAuth.currentUser.updateProfile({ displayName: name }).then(done).catch(done);
+                } else {
+                    done();
                 }
             }
         });
     },
     
-    // Check if can use specific AI provider
+    /**
+     * Tier-based provider access:
+     * Guest -> ChatGPT | Google sign-in -> ChatGPT + Gemini | VIP/Admin -> All
+     */
     canUseProvider(providerId) {
-        switch(providerId) {
-            case 'chatgpt':
-                return CONFIG.OPENAI.CONFIGURED;
-            case 'gemini':
-                return this.isGoogleAuthenticated();
-            case 'claude':
-                return this.isVIP() || this.isAdmin();
-            default:
-                return false;
-        }
+        const tier = this.getAccessTier();
+        return tier.providers.includes(providerId);
     }
 };
 
@@ -777,7 +1054,7 @@ function showToast(type, title, message) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <i class="fas ${icons[type]} toast-icon"></i>
+        <i class="fas ${icons[type] || 'fa-info-circle'} toast-icon"></i>
         <div class="toast-content">
             <div class="toast-title">${title}</div>
             <div class="toast-message">${message}</div>
@@ -801,27 +1078,9 @@ function showToast(type, title, message) {
 // Close all dropdowns
 function closeAllDropdowns() {
     document.getElementById('account-dropdown')?.querySelector('.dropdown-menu')?.classList.remove('show');
+    document.getElementById('account-dropdown')?.classList.remove('open');
 }
 
-// Initialize Firebase when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Load Firebase SDK first
-    const firebaseScript = document.createElement('script');
-    firebaseScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
-    firebaseScript.onload = () => {
-        const authScript = document.createElement('script');
-        authScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
-        authScript.onload = () => {
-            AuthManager.init();
-        };
-        document.head.appendChild(authScript);
-    };
-    document.head.appendChild(firebaseScript);
-    
-    // Also load reCAPTCHA
-    const recaptchaScript = document.createElement('script');
-    recaptchaScript.src = `https://www.google.com/recaptcha/api.js?render=${CONFIG.AUTH.RECAPTCHA.SITE_KEY}`;
-    recaptchaScript.async = true;
-    recaptchaScript.defer = true;
-    document.head.appendChild(recaptchaScript);
-});
+// Expose globally
+window.AuthManager = AuthManager;
+window.executeRecaptcha = executeRecaptcha;

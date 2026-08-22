@@ -1,8 +1,16 @@
-# 🚀 Quick Start Guide
+# 🚀 Quick Start Guide (v1.1.0)
 
 ## Your Website is Ready!
 
-Your Code Forge website now has all the requested features implemented. Here's how to get it live in **5 minutes**:
+Your Code Forge website now has all the requested features implemented — Firebase auth, Google OAuth, reCAPTCHA v3, promo-code VIP, tiered AI access (Guest=ChatGPT, Google=+Gemini, VIP=All), 8 animated chat themes, a full admin panel, and a responsive mobile layout.
+
+**Try it in 60 seconds:**
+1. Open the site → **AI Assistant** → chat with ChatGPT as a guest
+2. Click **Gemini** → sign in with Google → Gemini unlocks
+3. Go to **VIP** → enter promo code `X7K9-P2L4-MN6R-Q8W2` → all models + VIP chat themes unlock
+4. Enter `ZB-00-11-22-33` instead → **Admin Panel** appears in the account menu
+
+Here's how to get it live in **5 minutes**:
 
 ---
 
@@ -13,12 +21,12 @@ Your Code Forge website now has all the requested features implemented. Here's h
    cd /home/user/CodeForge-AI
    git add .
    git commit -m "Added reCAPTCHA, Google Auth, Firebase Auth, Promo Codes, Google Ads"
-   git push origin arena/01a024b2-codeforge-ai
+   git push origin main
    ```
 
 2. **Enable GitHub Pages:**
    - Go to: `https://github.com/zerobore/CodeForge-AI/settings/pages`
-   - Select branch: `arena/01a024b2-codeforge-ai`
+   - Select branch: `main`
    - Folder: `/ (root)`
    - Click **Save**
 
