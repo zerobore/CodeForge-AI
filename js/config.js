@@ -17,7 +17,7 @@ const CONFIG = {
      */
     OPENAI: {
         API_KEY: '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', // Add your OpenAI API key here
-        MODEL: 'gpt-5.6-sol',
+        MODEL: 'gpt-4o-mini',
         ENDPOINT: '/api/ai/chatgpt',
         MAX_TOKENS: 4096,
         TEMPERATURE: 0.7,
@@ -33,9 +33,9 @@ const CONFIG = {
      */
     GEMINI: {
         API_KEY: 'AQ.Ab8RN6JJfGT41-lh1dHfPg2ZtG92QyaYVp01L6R5dwwT0SrpQg', // Add your Google Gemini API key here
-        MODEL: 'gemini-3.7-flash',
+        MODEL: 'gemini-1.5-flash',
         ENDPOINT: '/api/ai/gemini',
-        MAX_TOKENS: 65536,
+        MAX_TOKENS: 8192,
         TEMPERATURE: 0.7,
         AVAILABLE: true,
         REQUIRE_AUTH: true,
@@ -49,82 +49,14 @@ const CONFIG = {
      */
     CLAUDE: {
         API_KEY: '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', // Add your Claude API key here
-        MODEL: 'claude-sonnet-5',
+        MODEL: 'claude-3-5-sonnet-20241022',
         ENDPOINT: '/api/ai/claude',
-        MAX_TOKENS: 65536,
+        MAX_TOKENS: 8192,
         TEMPERATURE: 0.7,
         AVAILABLE: true,
         REQUIRE_AUTH: true,
         REQUIRE_VIP: true,
         CONFIGURED: false // Set to true when you add your API key
-    },
-
-    // ==========================================
-    // AI Access Control (Tier-based)
-    // ==========================================
-    // Guest (not logged in)  -> ChatGPT only
-    // Signed in with Google  -> ChatGPT + Gemini
-    // VIP / Admin            -> ChatGPT + Gemini + Claude (All)
-    
-    AI_ACCESS: {
-        TIERS: {
-            GUEST: {
-                id: 'guest',
-                name: 'Guest',
-                description: 'ChatGPT only',
-                providers: ['chatgpt']
-            },
-            MEMBER: {
-                id: 'member',
-                name: 'Member',
-                description: 'ChatGPT only',
-                providers: ['chatgpt']
-            },
-            GOOGLE: {
-                id: 'google',
-                name: 'Google Account',
-                description: 'ChatGPT + Gemini',
-                providers: ['chatgpt', 'gemini']
-            },
-            VIP: {
-                id: 'vip',
-                name: 'VIP Member',
-                description: 'All AI models',
-                providers: ['chatgpt', 'gemini', 'claude']
-            },
-            ADMIN: {
-                id: 'admin',
-                name: 'Administrator',
-                description: 'All AI models + admin panel',
-                providers: ['chatgpt', 'gemini', 'claude']
-            }
-        },
-        // Human-readable labels for provider requirements
-        REQUIREMENTS: {
-            chatgpt: 'Free for everyone',
-            gemini: 'Sign in with Google (or VIP)',
-            claude: 'VIP members only'
-        }
-    },
-
-    // ==========================================
-    // Chat Themes (AI Assistant)
-    // Each theme has unique colors + animations
-    // ==========================================
-    
-    CHAT_THEMES: {
-        STORAGE_KEY: 'codeforge_chat_theme',
-        DEFAULT: 'neon-pulse',
-        THEMES: [
-            { id: 'neon-pulse',   name: 'Neon Pulse',   icon: 'fa-bolt',          vip: false },
-            { id: 'aurora',       name: 'Aurora Flow',  icon: 'fa-leaf',          vip: false },
-            { id: 'cyber-grid',   name: 'Cyber Grid',   icon: 'fa-microchip',     vip: false },
-            { id: 'sunset-blaze', name: 'Sunset Blaze', icon: 'fa-fire',          vip: false },
-            { id: 'ocean-depth',  name: 'Ocean Depth',  icon: 'fa-water',         vip: false },
-            { id: 'royal-gold',   name: 'Royal Gold',   icon: 'fa-crown',         vip: true  },
-            { id: 'matrix-rain',  name: 'Matrix Rain',  icon: 'fa-code',          vip: true  },
-            { id: 'candy-pop',    name: 'Candy Pop',    icon: 'fa-heart',         vip: true  }
-        ]
     },
 
     // ==========================================
@@ -232,7 +164,7 @@ const CONFIG = {
     
     APP: {
         NAME: 'Code Forge',
-        VERSION: '1.1.0',
+        VERSION: '1.0.0',
         DESCRIPTION: 'Learn, Code, Build & Create with AI',
         
         // Theme settings
@@ -247,21 +179,6 @@ const CONFIG = {
         
         // Projects storage key
         PROJECTS_STORAGE_KEY: 'codeforge_projects',
-        
-        // User registry (admin panel - demo backend via localStorage)
-        USER_REGISTRY_KEY: 'codeforge_user_registry',
-        
-        // Promo code usage tracking
-        PROMO_USAGE_KEY: 'codeforge_promo_usage',
-        
-        // Activity log (admin panel)
-        ACTIVITY_LOG_KEY: 'codeforge_activity_log',
-        
-        // AI usage counters (admin panel)
-        AI_USAGE_KEY: 'codeforge_ai_usage',
-        
-        // Max activity log entries to keep
-        MAX_ACTIVITY_LOG: 100,
         
         // Max chat history messages to keep
         MAX_CHAT_HISTORY: 50,
@@ -308,28 +225,6 @@ const CONFIG = {
     },
 
     // ==========================================
-    // Admin Panel Configuration
-    // ==========================================
-    
-    ADMIN: {
-        // Access via admin promo code (see PAYMENT.ADMIN_PROMO_CODE)
-        ACTIVITY_ICON_MAP: {
-            'login': 'fa-sign-in-alt',
-            'signup': 'fa-user-plus',
-            'logout': 'fa-sign-out-alt',
-            'google-login': 'fa-google',
-            'promo': 'fa-ticket-alt',
-            'admin-activated': 'fa-user-shield',
-            'ai-message': 'fa-robot',
-            'vip-granted': 'fa-crown',
-            'vip-revoked': 'fa-user-slash',
-            'user-deleted': 'fa-user-times',
-            'promo-generated': 'fa-plus-circle',
-            'promo-toggled': 'fa-toggle-on'
-        }
-    },
-
-    // ==========================================
     // Error Messages
     // ==========================================
     
@@ -354,10 +249,8 @@ const CONFIG = {
         AI_RESPONSE_ERROR: 'Error processing response. Please try again.',
         
         // Provider-specific errors
-        GEMINI_REQUIRES_AUTH: 'Gemini requires Google authentication. Sign in with Google (or activate VIP).',
+        GEMINI_REQUIRES_AUTH: 'Gemini requires Google authentication. Please sign in with Google.',
         CLAUDE_REQUIRES_VIP: 'Claude is exclusive to VIP members. Enter a promo code to upgrade.',
-        CODE_ALREADY_USED: 'You have already used this promo code.',
-        INVALID_CHAT_THEME: 'Unknown chat theme.',
         
         // General errors
         NETWORK_ERROR: 'Unable to connect to server. Please check your internet connection.',
@@ -380,13 +273,7 @@ const CONFIG = {
         PROJECT_SAVED: 'Project saved successfully!',
         CODE_COPIED: 'Code copied to clipboard!',
         PROMO_CODE_ACTIVATED: 'VIP Access Activated! Enjoy premium features.',
-        ADMIN_MODE_ACTIVATED: 'Admin Mode Activated! Full access granted.',
-        CHAT_THEME_APPLIED: 'Chat theme applied!',
-        VIP_GRANTED: 'VIP access granted to user.',
-        VIP_REVOKED: 'VIP access revoked from user.',
-        PROMO_GENERATED: 'New promo code generated.',
-        PROMO_DISABLED: 'Promo code disabled.',
-        PROMO_ENABLED: 'Promo code enabled.'
+        ADMIN_MODE_ACTIVATED: 'Admin Mode Activated! Full access granted.'
     }
 };
 
